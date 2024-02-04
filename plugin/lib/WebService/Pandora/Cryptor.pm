@@ -24,7 +24,7 @@ sub new {
     my $crypt = Crypt::ECB->new();
 
     $crypt->padding( 'standard' );
-    $crypt->cipher( 'Blowfish' );
+    $crypt->cipher( 'Blowfish_PP' );
 
     $self->{'crypt'} = $crypt;
 

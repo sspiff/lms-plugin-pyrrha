@@ -22,11 +22,17 @@ my $prefs = preferences( 'plugin.pandora2024' );
 
 sub stationFeed {
   my ( $client, $callback ) = @_;
-  my @items;
+  my $items = [];
+  push @$items, {
+    'name'  => "Gin Blossoms Radio",
+    'type'  => 'link',
+    'url'   => 'foo://',
+    'image' => 'https://content-images.p-cdn.com/images/46/c1/2f/83/eafa4884a3d65002a388d28a/_500W_500H.jpg',
+  };
   my %opml = (
     'type'  => 'opml',
     'title' => 'Pandora 2024',   #XXX
-    'items' => \@items,
+    'items' => $items,
   );
   $callback->(\%opml);
 }

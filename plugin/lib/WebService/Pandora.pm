@@ -176,7 +176,7 @@ sub getBookmarks {
 
 sub getStationList {
 
-    my ( $self ) = @_;
+    my ( $self, %args ) = @_;
 
     # create the user.getStationList method w/ appropriate params
     my $method = WebService::Pandora::Method->new( name => 'user.getStationList',
@@ -190,7 +190,7 @@ sub getStationList {
                                                    encrypt => 1,
                                                    cryptor => $self->{'cryptor'},
                                                    timeout => $self->{'timeout'},
-                                                   params => {} );
+                                                   params => \%args );
 
     my $ret = $method->execute();
 

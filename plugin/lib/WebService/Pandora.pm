@@ -69,6 +69,7 @@ sub login {
     }
 
     # first, do the partner login
+    my $loginTime = time();
     my $ret = $self->{'partner'}->login();
 
     # detect error
@@ -103,7 +104,7 @@ sub login {
         return;
     }
 
-    $self->{'syncTime'} = substr( $self->{'syncTime'}, 4 );
+    $self->{'syncTime'} = $loginTime - int(substr( $self->{'syncTime'}, 4 ));
 
     # now create and execute the method for the user login request
     my $method = WebService::Pandora::Method->new( name => 'auth.userLogin',

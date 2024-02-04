@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<extension>
+  <id>CF2D3A6A-F98B-4750-9206-444C8BCF33AA</id>
+  <name>PLUGIN_PANDORA2024_MODULE_NAME</name>
+  <version>0.1</version>
+  <description>PLUGIN_PANDORA2024_PERSONALIZED_RADIO</description>
+  <creator>sspiff</creator>
+  <module>Plugins::Pandora2024::Plugin</module>
+  <icon>plugins/Pandora2024/images/icon.png</icon>
+  <optionsURL>plugins/Pandora2024/settings/basic.html</optionsURL>
+  <type>2</type>
+  <targetApplication>
+    <id>Logitech Media Server</id>
+    <minVersion>8.3</minVersion>
+    <maxVersion>*</maxVersion>
+  </targetApplication>
+</extension>

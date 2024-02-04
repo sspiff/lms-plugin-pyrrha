@@ -1,0 +1,15 @@
+[% PROCESS settings/header.html %]
+
+	[% WRAPPER setting title="PLUGIN_PANDORA2024_MODULE_NAME" desc="" %]
+		<div class="prefDesc">[% "PLUGIN_PANDORA2024_PERSONALIZED_RADIO" | string %]</div>
+	[% END %]
+
+	[% WRAPPER setting title="SETUP_USERNAME" desc="" %]
+		<input type="text" class="stdedit" name="pref_username" id="username" value="[% prefs.pref_username | html %]" size="40">
+	[% END %]
+
+	[% WRAPPER setting title="SETUP_PASSWORD" desc="" %]
+		<input type="password" class="stdedit" name="pref_password" id="password" value="[% prefs.pref_password | html %]" size="40">
+	[% END %]
+
+[% PROCESS settings/footer.html %]

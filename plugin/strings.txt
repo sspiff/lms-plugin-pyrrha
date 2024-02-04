@@ -1,0 +1,46 @@
+PLUGIN_PANDORA2024_MODULE_NAME
+	CS	Pandora 2024
+	DA	Pandora 2024
+	DE	Pandora 2024
+	EN	Pandora 2024
+	ES	Pandora 2024
+	FI	Pandora 2024
+	FR	Pandora 2024
+	IT	Pandora 2024
+	NL	Pandora 2024
+	NO	Pandora 2024
+	PL	Pandora 2024
+	RU	Pandora 2024
+	SV	Pandora 2024
+
+PLUGIN_PANDORA2024_PANDORA
+	CS	Pandora
+	DA	Pandora
+	DE	Pandora
+	EN	Pandora
+	ES	Pandora
+	FI	Pandora
+	FR	Pandora
+	IT	Pandora
+	NL	Pandora
+	NO	Pandora
+	PL	Pandora
+	RU	Pandora
+	SV	Pandora
+
+PLUGIN_PANDORA2024_PERSONALIZED_RADIO
+	CS	Personalizované rádio (Pandora)
+	DA	Personlig radio (Pandora)
+	DE	Benutzerdefiniertes Radio (Pandora)
+	EN	Personalized Radio (Pandora)
+	ES	Radio personalizada (Pandora)
+	FI	Mukautettu radio (Pandora)
+	FR	Radio personnalisée (Pandora)
+	HE	רדיו מותאם אישית (Pandora)
+	IT	Radio personalizzata (Pandora)
+	NL	Gepersonaliseerde radio (Pandora)
+	NO	Personlig radio (Pandora)
+	PL	Spersonalizowane stacje radiowe (Pandora)
+	RU	Персонализированное радио (Pandora)
+	SV	Personlig radio (Pandora)
+

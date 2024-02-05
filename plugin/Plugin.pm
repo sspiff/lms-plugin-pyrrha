@@ -7,6 +7,7 @@ use base qw(Slim::Plugin::OPMLBased);
 
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
+use Plugins::Pandora2024::Utils qw(getPandoraStationList);
 
 sub getDisplayName () {
   return 'PLUGIN_PANDORA2024_MODULE_NAME';
@@ -20,22 +21,44 @@ my $log = Slim::Utils::Log->addLogCategory({
 
 my $prefs = preferences( 'plugin.pandora2024' );
 
-sub stationFeed {
-  my ( $client, $callback ) = @_;
+
+sub handleFeed {
+  my ($client, $callback) = @_;
+
   my $items = [];
-  push @$items, {
-    'name'  => "Gin Blossoms Radio",
-    'type'  => 'link',
-    'url'   => 'foo://',
-    'image' => 'https://content-images.p-cdn.com/images/46/c1/2f/83/eafa4884a3d65002a388d28a/_500W_500H.jpg',
-  };
   my %opml = (
     'type'  => 'opml',
     'title' => 'Pandora 2024',   #XXX
     'items' => $items,
   );
-  $callback->(\%opml);
+
+  my $withStations = sub {
+    my ($stations) = @_;
+    my $username = $prefs->get('username');
+    foreach my $station ( @$stations ) {
+      my $stationId = $station->{'stationId'};
+      push @$items, {
+        'name'  => $station->{'stationName'},
+        'type'  => 'audio',
+        'url'   => "pandora2024://$username/$stationId.mp3",
+        'image' => $station->{'artUrl'},
+      };
+    }
+    $callback->(\%opml);
+  };
+
+  my $withoutStations = sub {
+    my ($error) = @_;
+    push @$items, {
+      'name' => $error,
+      'type' => 'textarea',
+    };
+    $callback->(\%opml);
+  };
+
+  getPandoraStationList($client, $withStations, $withoutStations);
 }
+
 
 sub initPlugin {
   my $class = shift;
@@ -46,14 +69,13 @@ sub initPlugin {
   }
 
   $class->SUPER::initPlugin(
-    feed   => \&stationFeed,
+    feed   => \&handleFeed,
     tag    => 'pandora2024',
     menu   => 'music_services',
     weight => 10,
     is_app => 1,
   );
 }
-
 
 1;
 

@@ -333,7 +333,7 @@ sub getPlaylist {
                                                    userId => $self->{'userId'},
                                                    syncTime => $self->{'syncTime'},
                                                    host => $self->{'partner'}{'host'},
-                                                   ssl => 0,
+                                                   ssl => 1,
                                                    encrypt => 1,
                                                    cryptor => $self->{'cryptor'},
                                                    timeout => $self->{'timeout'},

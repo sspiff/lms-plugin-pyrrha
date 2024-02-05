@@ -63,6 +63,10 @@ sub handleFeed {
 sub initPlugin {
   my $class = shift;
 
+  Slim::Player::ProtocolHandlers->registerHandler(
+    pandora2024 => 'Plugins::Pandora2024::ProtocolHandler'
+  );
+
   if ( main::WEBUI ) {
     require Plugins::Pandora2024::Settings;
     Plugins::Pandora2024::Settings->new;

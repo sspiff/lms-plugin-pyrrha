@@ -337,7 +337,8 @@ sub getPlaylist {
                                                    encrypt => 1,
                                                    cryptor => $self->{'cryptor'},
                                                    timeout => $self->{'timeout'},
-                                                   params => {'stationToken' => $stationToken} );
+                                                   params => {'stationToken' => $stationToken,
+                                                              'includeTrackLength' => JSON::true()} );
 
     my $ret = $method->execute();
 

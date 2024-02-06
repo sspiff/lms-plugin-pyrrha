@@ -2,7 +2,7 @@
 <extension>
   <id>CF2D3A6A-F98B-4750-9206-444C8BCF33AA</id>
   <name>PLUGIN_PANDORA2024_MODULE_NAME</name>
-  <version>0.1</version>
+  <version>0.1.0</version>
   <description>PLUGIN_PANDORA2024_PERSONALIZED_RADIO</description>
   <creator>sspiff</creator>
   <module>Plugins::Pandora2024::Plugin</module>

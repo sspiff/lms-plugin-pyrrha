@@ -19,10 +19,13 @@ my $log = Slim::Utils::Log->addLogCategory({
 my $prefs = preferences( 'plugin.pandora2024' );
 
 
+my %cache = ();
+
+
 sub getPandoraWebService {
   my ($client, $successCb, $errorCb) = @_;
 
-  my $websvc = $client->pluginData('pandoraWebService');
+  my $websvc = $cache{'pandoraWebService'};
   if (defined $websvc) {
     $log->info('using cached websvc');
     $successCb->($websvc);
@@ -36,11 +39,14 @@ sub getPandoraWebService {
               partner  => WebService::Pandora::Partner::AIR->new()
             );
   if (!$websvc->login()) {
-    $errorCb->($websvc->error());
+    my $e = $websvc->error();
+    $log->error($e);
+    $errorCb->($e);
     return;
   }
+  $log->info('login successful');
 
-  $client->pluginData('pandoraWebService', $websvc);
+  $cache{'pandoraWebService'} = $websvc;
 
   $successCb->($websvc);
   return;
@@ -50,8 +56,8 @@ sub getPandoraWebService {
 sub getPandoraStationList {
   my ($client, $successCb, $errorCb) = @_;
 
-  my $websvc = $client->pluginData('pandoraWebService');
-  my $stationList = $client->pluginData('pandoraStationList');
+  my $websvc = $cache{'pandoraWebService'};
+  my $stationList = $cache{'pandoraStationList'};
   if (defined $stationList) {
     $log->info('using cached station list');
     $successCb->($stationList, $websvc);
@@ -64,16 +70,18 @@ sub getPandoraStationList {
     my $result = $websvc->getStationList(includeStationArtUrl => JSON::true());
     if ($result) {
       my $stationList = $result->{'stations'};
-      $client->pluginData('pandoraStationList', $stationList);
+      $cache{'pandoraStationList'} = $stationList;
       $successCb->($stationList, $websvc);
     }
     else {
       my $e = $websvc->error();
+      $log->error($e);
       $errorCb->("Error getting station list ($e)");
     }
   };
 
   my $withoutWebsvc = sub {
+    $log->error(@_);
     $errorCb->('Unable to connect/login to Pandora');
   };
 
@@ -91,6 +99,7 @@ sub getPandoraStationToken {
       $successCb->($station->{stationToken}, $websvc);
     }
     else {
+      $log->error('stationId not found in station list');
       $errorCb->('Station not found');
     }
   };
@@ -119,6 +128,7 @@ sub getPandoraPlaylist {
     }
     else {
       my $e = $websvc->error();
+      $log->error($e);
       $errorCb->("Error getting play list ($e)");
     }
 
@@ -126,4 +136,7 @@ sub getPandoraPlaylist {
 
   getPandoraStationToken($client, $stationId, $withStationToken, $onError);
 }
+
+
+1;
 

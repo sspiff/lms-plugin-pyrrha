@@ -6,7 +6,7 @@
   <description>PLUGIN_PYRRHA_DAUGHTEROFPANDORA</description>
   <creator>sspiff</creator>
   <module>Plugins::Pyrrha::Plugin</module>
-  <icon>plugins/Pyrrha/images/icon.png</icon>
+  <icon>plugins/Pyrrha/images/icon.svg</icon>
   <optionsURL>plugins/Pyrrha/settings/basic.html</optionsURL>
   <type>2</type>
   <targetApplication>

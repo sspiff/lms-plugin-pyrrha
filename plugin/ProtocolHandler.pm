@@ -10,6 +10,11 @@ my $log = Slim::Utils::Log->addLogCategory({
   description  => 'PLUGIN_PANDORA2024_MODULE_NAME',
 });
 
+
+# max time player can be idle before stopping playback (8 hours)
+my $MAX_IDLE_TIME = 60 * 60 * 8;
+
+
 sub new {
   my $class = shift;
   my $args  = shift;
@@ -33,10 +38,12 @@ sub new {
   return $sock;
 }
 
+
 sub scanUrl {
   my ($class, $url, $args) = @_;
   $args->{'cb'}->($args->{'song'}->currentTrack());
 }
+
 
 sub isRepeatingStream { 1 }
 
@@ -49,6 +56,29 @@ sub getNextTrack {
   my ($urlUsername, $urlStationId) = $url =~ m{^pandora2024://([^/]+)/([^.]+)\.mp3};
 
   $log->info( $url );
+
+  # idle time check
+  if ($client->isPlaying()) {
+    # get last activity time from this player and any synced players
+    my $lastActivity = $client->lastActivityTime();
+    if ($client->isSynced(1)) {
+      for my $c ($client->syncGroupActiveMembers()) {
+        my $otherActivity = $c->lastActivityTime();
+        if ($otherActivity > $lastActivity) {
+          $lastActivity = $otherActivity;
+        }
+      }
+    }
+    # idle too long?
+    if (time() - $lastActivity >= $MAX_IDLE_TIME) {
+      $log->info('idle time reached, stopping playback');
+      $client->playingSong()->pluginData({
+        songName => $client->string('PLUGIN_PANDORA2024_IDLE_STOPPING'),
+      });
+      $errorCb->('PLUGIN_PANDORA2024_IDLE_STOPPING');
+      return;
+    }
+  }
 
   my $station = $client->master->pluginData('station');
   if ($station) {

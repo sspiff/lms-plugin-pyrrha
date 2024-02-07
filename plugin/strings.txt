@@ -44,3 +44,19 @@ PLUGIN_PANDORA2024_PERSONALIZED_RADIO
 	RU	Персонализированное радио (Pandora)
 	SV	Personlig radio (Pandora)
 
+PLUGIN_PANDORA2024_IDLE_STOPPING
+	CS	Překročen čas nečinnosti Pandora, pro pokračování poslechu stiskněte tlačítko PLAY.
+	DA	Grænsen for inaktivitet på Pandora er overskredet. Tryk på Afspil for at fortsætte med at lytte.
+	DE	Erlaubte Pandora-Pause überschritten, drücken Sie zum Weiterhören PLAY.
+	EN	Pandora idle time exceeded, press PLAY to continue listening.
+	ES	Se ha excedido el tiempo de inactividad en Pandora. Pulse PLAY para continuar escuchando.
+	FI	Pandoran joutoaika ylittyi. Jatka kuuntelua painamalla toistonäppäintä.
+	FR	Temps d'inactivité Pandora dépassé, appuyez sur PLAY pour continuer l'écoute.
+	HE	חריגה ממשך הזמן המוקצב לחוסר פעילות ב-Pandora, לחץ על PLAY (הפעלה) כדי להמשיך בהאזנה.
+	IT	Tempo di inattività di Pandora superato. Premere PLAY per proseguire l'ascolto.
+	NL	Niet-actieve tijd van Pandora overschreden. Druk op PLAY om door te gaan.
+	NO	Pandoras terskel for inaktivitet er nådd, trykk PLAY for å fortsette å lytte.
+	PL	Czas bezczynności usługi Pandora przekroczony; naciśnij przycisk PLAY, aby kontynuować odtwarzanie.
+	RU	Превышен интервал неактивности на Pandora. Нажмите PLAY, чтобы продолжить прослушивание.
+	SV	Pandora har varit inaktivt för länge. Tryck på Play om du vill fortsätta lyssna.
+

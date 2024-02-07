@@ -1,9 +1,9 @@
-package Plugins::Pandora2024::Utils;
+package Plugins::Pyrrha::Utils;
 
 use strict;
 
 use Exporter 'import';
-our @EXPORT_OK = qw(getPandoraWebService getPandoraStationList getPandoraPlaylist);
+our @EXPORT_OK = qw(getWebService getStationList getPlaylist);
 
 use Slim::Utils::Prefs;
 use JSON;
@@ -11,21 +11,21 @@ use WebService::Pandora;
 use WebService::Pandora::Partner::AIR;
 
 my $log = Slim::Utils::Log->addLogCategory({
-  category     => 'plugin.pandora2024',
+  category     => 'plugin.pyrrha',
   defaultLevel => 'INFO',
-  description  => 'PLUGIN_PANDORA2024_MODULE_NAME',
+  description  => 'PLUGIN_PYRRHA_MODULE_NAME',
 });
 
-my $prefs = preferences( 'plugin.pandora2024' );
+my $prefs = preferences( 'plugin.pyrrha' );
 
 
 my %cache = ();
 
 
-sub getPandoraWebService {
+sub getWebService {
   my ($successCb, $errorCb) = @_;
 
-  my $websvc = $cache{'pandoraWebService'};
+  my $websvc = $cache{'webService'};
   if (defined $websvc) {
     $log->info('using cached websvc');
     $successCb->($websvc);
@@ -49,18 +49,18 @@ sub getPandoraWebService {
   }
   $log->info('login successful');
 
-  $cache{'pandoraWebService'} = $websvc;
+  $cache{'webService'} = $websvc;
 
   $successCb->($websvc);
   return;
 }
 
 
-sub getPandoraStationList {
+sub getStationList {
   my ($successCb, $errorCb) = @_;
 
-  my $websvc = $cache{'pandoraWebService'};
-  my $stationList = $cache{'pandoraStationList'};
+  my $websvc = $cache{'webService'};
+  my $stationList = $cache{'stationList'};
   if (defined $stationList) {
     $log->info('using cached station list');
     $successCb->($stationList, $websvc);
@@ -73,7 +73,7 @@ sub getPandoraStationList {
     my $result = $websvc->getStationList(includeStationArtUrl => JSON::true());
     if ($result) {
       my $stationList = $result->{'stations'};
-      $cache{'pandoraStationList'} = $stationList;
+      $cache{'stationList'} = $stationList;
       $successCb->($stationList, $websvc);
     }
     else {
@@ -96,11 +96,11 @@ sub getPandoraStationList {
     $errorCb->('Unable to connect/login to Pandora');
   };
 
-  getPandoraWebService($withWebsvc, $withoutWebsvc);
+  getWebService($withWebsvc, $withoutWebsvc);
 }
 
 
-sub getPandoraStationToken {
+sub getStationToken {
   my ($stationId, $successCb, $errorCb) = @_;
 
   my $withStationList = sub {
@@ -119,11 +119,11 @@ sub getPandoraStationToken {
     $errorCb->(@_);
   };
 
-  getPandoraStationList($withStationList, $withoutStationList);
+  getStationList($withStationList, $withoutStationList);
 }
 
 
-sub getPandoraPlaylist {
+sub getPlaylist {
   my ($stationId, $successCb, $errorCb) = @_;
 
   my $onError = sub {
@@ -153,7 +153,7 @@ sub getPandoraPlaylist {
 
   };
 
-  getPandoraStationToken($stationId, $withStationToken, $onError);
+  getStationToken($stationId, $withStationToken, $onError);
 }
 
 

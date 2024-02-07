@@ -1,18 +1,18 @@
-package Plugins::Pandora2024::Settings;
+package Plugins::Pyrrha::Settings;
 
 use strict;
 use base qw(Slim::Web::Settings);
 
 use Slim::Utils::Prefs;
 
-my $prefs = preferences('plugin.pandora2024');
+my $prefs = preferences('plugin.pyrrha');
 
 sub name {
-  return Slim::Web::HTTP::CSRF->protectName('PLUGIN_PANDORA2024_MODULE_NAME');
+  return Slim::Web::HTTP::CSRF->protectName('PLUGIN_PYRRHA_MODULE_NAME');
 }
 
 sub page {
-  return 'plugins/Pandora2024/settings/basic.html';
+  return 'plugins/Pyrrha/settings/basic.html';
 }
 
 sub prefs {

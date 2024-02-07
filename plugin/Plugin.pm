@@ -1,4 +1,4 @@
-package Plugins::Pandora2024::Plugin;
+package Plugins::Pyrrha::Plugin;
 
 use strict;
 use warnings;
@@ -7,19 +7,19 @@ use base qw(Slim::Plugin::OPMLBased);
 
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Plugins::Pandora2024::Utils qw(getPandoraStationList);
+use Plugins::Pyrrha::Utils qw(getStationList);
 
 sub getDisplayName () {
-  return 'PLUGIN_PANDORA2024_MODULE_NAME';
+  return 'PLUGIN_PYRRHA_MODULE_NAME';
 }
 
 my $log = Slim::Utils::Log->addLogCategory({
-  'category'     => 'plugin.pandora2024',
+  'category'     => 'plugin.pyrrha',
   'defaultLevel' => 'INFO',
   'description'  => getDisplayName(),
 });
 
-my $prefs = preferences( 'plugin.pandora2024' );
+my $prefs = preferences( 'plugin.pyrrha' );
 
 
 sub handleFeed {
@@ -28,7 +28,7 @@ sub handleFeed {
   my $items = [];
   my %opml = (
     'type'  => 'opml',
-    'title' => 'Pandora 2024',   #XXX
+    'title' => 'Pyrrha',   #XXX
     'items' => $items,
   );
 
@@ -40,7 +40,7 @@ sub handleFeed {
       push @$items, {
         'name'  => $station->{'stationName'},
         'type'  => 'audio',
-        'url'   => "pandora2024://$username/$stationId.mp3",
+        'url'   => "pyrrha://$username/$stationId.mp3",
         'image' => $station->{'artUrl'},
       };
     }
@@ -56,7 +56,7 @@ sub handleFeed {
     $callback->(\%opml);
   };
 
-  getPandoraStationList($withStations, $withoutStations);
+  getStationList($withStations, $withoutStations);
 }
 
 
@@ -64,17 +64,17 @@ sub initPlugin {
   my $class = shift;
 
   Slim::Player::ProtocolHandlers->registerHandler(
-    pandora2024 => 'Plugins::Pandora2024::ProtocolHandler'
+    pyrrha => 'Plugins::Pyrrha::ProtocolHandler'
   );
 
   if ( main::WEBUI ) {
-    require Plugins::Pandora2024::Settings;
-    Plugins::Pandora2024::Settings->new;
+    require Plugins::Pyrrha::Settings;
+    Plugins::Pyrrha::Settings->new;
   }
 
   $class->SUPER::initPlugin(
     feed   => \&handleFeed,
-    tag    => 'pandora2024',
+    tag    => 'pyrrha',
     menu   => 'music_services',
     weight => 10,
     is_app => 1,

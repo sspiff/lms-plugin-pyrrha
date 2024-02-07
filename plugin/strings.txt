@@ -1,19 +1,19 @@
-PLUGIN_PANDORA2024_MODULE_NAME
-	CS	Pandora 2024
-	DA	Pandora 2024
-	DE	Pandora 2024
-	EN	Pandora 2024
-	ES	Pandora 2024
-	FI	Pandora 2024
-	FR	Pandora 2024
-	IT	Pandora 2024
-	NL	Pandora 2024
-	NO	Pandora 2024
-	PL	Pandora 2024
-	RU	Pandora 2024
-	SV	Pandora 2024
+PLUGIN_PYRRHA_MODULE_NAME
+	CS	Pyrrha
+	DA	Pyrrha
+	DE	Pyrrha
+	EN	Pyrrha
+	ES	Pyrrha
+	FI	Pyrrha
+	FR	Pyrrha
+	IT	Pyrrha
+	NL	Pyrrha
+	NO	Pyrrha
+	PL	Pyrrha
+	RU	Pyrrha
+	SV	Pyrrha
 
-PLUGIN_PANDORA2024_PANDORA
+PLUGIN_PYRRHA_PANDORA
 	CS	Pandora
 	DA	Pandora
 	DE	Pandora
@@ -28,23 +28,10 @@ PLUGIN_PANDORA2024_PANDORA
 	RU	Pandora
 	SV	Pandora
 
-PLUGIN_PANDORA2024_PERSONALIZED_RADIO
-	CS	Personalizované rádio (Pandora)
-	DA	Personlig radio (Pandora)
-	DE	Benutzerdefiniertes Radio (Pandora)
-	EN	Personalized Radio (Pandora)
-	ES	Radio personalizada (Pandora)
-	FI	Mukautettu radio (Pandora)
-	FR	Radio personnalisée (Pandora)
-	HE	רדיו מותאם אישית (Pandora)
-	IT	Radio personalizzata (Pandora)
-	NL	Gepersonaliseerde radio (Pandora)
-	NO	Personlig radio (Pandora)
-	PL	Spersonalizowane stacje radiowe (Pandora)
-	RU	Персонализированное радио (Pandora)
-	SV	Personlig radio (Pandora)
+PLUGIN_PYRRHA_DAUGHTEROFPANDORA
+	EN	Daughter of Pandora
 
-PLUGIN_PANDORA2024_IDLE_STOPPING
+PLUGIN_PYRRHA_IDLE_STOPPING
 	CS	Překročen čas nečinnosti Pandora, pro pokračování poslechu stiskněte tlačítko PLAY.
 	DA	Grænsen for inaktivitet på Pandora er overskredet. Tryk på Afspil for at fortsætte med at lytte.
 	DE	Erlaubte Pandora-Pause überschritten, drücken Sie zum Weiterhören PLAY.

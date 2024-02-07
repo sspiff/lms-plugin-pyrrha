@@ -1,13 +1,13 @@
-package Plugins::Pandora2024::ProtocolHandler;
+package Plugins::Pyrrha::ProtocolHandler;
 
 use strict;
 use base qw(Slim::Player::Protocols::HTTP);
-use Plugins::Pandora2024::Utils qw(getPandoraPlaylist);
+use Plugins::Pyrrha::Utils qw(getPlaylist);
 
 my $log = Slim::Utils::Log->addLogCategory({
-  category     => 'plugin.pandora2024',
+  category     => 'plugin.pyrrha',
   defaultLevel => 'INFO',
-  description  => 'PLUGIN_PANDORA2024_MODULE_NAME',
+  description  => 'PLUGIN_PYRRHA_MODULE_NAME',
 });
 
 
@@ -53,7 +53,7 @@ sub getNextTrack {
 
   my $client = $song->master();
   my $url    = $song->track()->url;
-  my ($urlUsername, $urlStationId) = $url =~ m{^pandora2024://([^/]+)/([^.]+)\.mp3};
+  my ($urlUsername, $urlStationId) = $url =~ m{^pyrrha://([^/]+)/([^.]+)\.mp3};
 
   $log->info( $url );
 
@@ -73,9 +73,9 @@ sub getNextTrack {
     if (time() - $lastActivity >= $MAX_IDLE_TIME) {
       $log->info('idle time reached, stopping playback');
       $client->playingSong()->pluginData({
-        songName => $client->string('PLUGIN_PANDORA2024_IDLE_STOPPING'),
+        songName => $client->string('PLUGIN_PYRRHA_IDLE_STOPPING'),
       });
-      $errorCb->('PLUGIN_PANDORA2024_IDLE_STOPPING');
+      $errorCb->('PLUGIN_PYRRHA_IDLE_STOPPING');
       return;
     }
   }
@@ -123,7 +123,7 @@ sub getNextTrack {
   }
   else {
     $log->info('fetching new playlist');
-    getPandoraPlaylist($urlStationId, $withNewPlaylist, $withoutPlaylist);
+    getPlaylist($urlStationId, $withNewPlaylist, $withoutPlaylist);
   }
 }
 

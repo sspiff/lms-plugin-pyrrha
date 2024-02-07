@@ -165,7 +165,11 @@ sub execute {
     # handle pandora error
     if ( $json_data->{'stat'} ne 'ok' ) {
 
-        $self->error( "$self->{'name'} error $json_data->{'code'}: $json_data->{'message'}" );
+        $self->error( {
+          'apiCode' => $json_data->{'code'},
+          'apiMessage' => $json_data->{'message'},
+          'message' => "$self->{'name'} error $json_data->{'code'}: $json_data->{'message'}",
+        } );
         return;
     }
 

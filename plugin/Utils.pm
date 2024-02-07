@@ -23,7 +23,7 @@ my %cache = ();
 
 
 sub getPandoraWebService {
-  my ($client, $successCb, $errorCb) = @_;
+  my ($successCb, $errorCb) = @_;
 
   my $websvc = $cache{'pandoraWebService'};
   if (defined $websvc) {
@@ -40,6 +40,9 @@ sub getPandoraWebService {
             );
   if (!$websvc->login()) {
     my $e = $websvc->error();
+    if (ref $e eq 'HASH') {
+      $e = $e->{'message'}
+    }
     $log->error($e);
     $errorCb->($e);
     return;
@@ -54,7 +57,7 @@ sub getPandoraWebService {
 
 
 sub getPandoraStationList {
-  my ($client, $successCb, $errorCb) = @_;
+  my ($successCb, $errorCb) = @_;
 
   my $websvc = $cache{'pandoraWebService'};
   my $stationList = $cache{'pandoraStationList'};
@@ -75,6 +78,14 @@ sub getPandoraStationList {
     }
     else {
       my $e = $websvc->error();
+      if (ref $e eq 'HASH') {
+        if ($e->{'apiCode'} == 1001) {
+          # auth token expired, clear our cached credentials
+          $log->info('auth token expired, clearing cache');
+          %cache = ();
+        }
+        $e = $e->{'message'}
+      }
       $log->error($e);
       $errorCb->("Error getting station list ($e)");
     }
@@ -85,12 +96,12 @@ sub getPandoraStationList {
     $errorCb->('Unable to connect/login to Pandora');
   };
 
-  getPandoraWebService($client, $withWebsvc, $withoutWebsvc);
+  getPandoraWebService($withWebsvc, $withoutWebsvc);
 }
 
 
 sub getPandoraStationToken {
-  my ($client, $stationId, $successCb, $errorCb) = @_;
+  my ($stationId, $successCb, $errorCb) = @_;
 
   my $withStationList = sub {
     my ($stationList, $websvc) = @_;
@@ -108,12 +119,12 @@ sub getPandoraStationToken {
     $errorCb->(@_);
   };
 
-  getPandoraStationList($client, $withStationList, $withoutStationList);
+  getPandoraStationList($withStationList, $withoutStationList);
 }
 
 
 sub getPandoraPlaylist {
-  my ($client, $stationId, $successCb, $errorCb) = @_;
+  my ($stationId, $successCb, $errorCb) = @_;
 
   my $onError = sub {
     $errorCb->(@_);
@@ -128,13 +139,21 @@ sub getPandoraPlaylist {
     }
     else {
       my $e = $websvc->error();
+      if (ref $e eq 'HASH') {
+        if ($e->{'apiCode'} == 1001) {
+          # auth token expired, clear our cached credentials
+          $log->info('auth token expired, clearing cache');
+          %cache = ();
+        }
+        $e = $e->{'message'}
+      }
       $log->error($e);
       $errorCb->("Error getting play list ($e)");
     }
 
   };
 
-  getPandoraStationToken($client, $stationId, $withStationToken, $onError);
+  getPandoraStationToken($stationId, $withStationToken, $onError);
 }
 
 

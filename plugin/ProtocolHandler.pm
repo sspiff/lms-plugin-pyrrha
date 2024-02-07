@@ -93,7 +93,7 @@ sub getNextTrack {
   }
   else {
     $log->info('fetching new playlist');
-    getPandoraPlaylist($client, $urlStationId, $withNewPlaylist, $withoutPlaylist);
+    getPandoraPlaylist($urlStationId, $withNewPlaylist, $withoutPlaylist);
   }
 }
 

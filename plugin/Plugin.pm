@@ -56,7 +56,7 @@ sub handleFeed {
     $callback->(\%opml);
   };
 
-  getPandoraStationList($client, $withStations, $withoutStations);
+  getPandoraStationList($withStations, $withoutStations);
 }
 
 

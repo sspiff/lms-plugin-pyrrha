@@ -37,11 +37,12 @@ sub handleFeed {
     my $username = $prefs->get('username');
     foreach my $station ( @$stations ) {
       my $stationId = $station->{'stationId'};
+      my $artUrl = $station->{'artUrl'};
       push @$items, {
         'name'  => $station->{'stationName'},
         'type'  => 'audio',
         'url'   => "pyrrha://$username/$stationId.mp3",
-        'image' => $station->{'artUrl'},
+        'image' => $artUrl ? $artUrl : 'html/images/radio.png',
       };
     }
     $callback->(\%opml);

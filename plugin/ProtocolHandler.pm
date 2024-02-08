@@ -123,8 +123,34 @@ sub getNextTrack {
   }
   else {
     $log->info('fetching new playlist');
+    $client->master->pluginData('station', 0);
     getPlaylist($urlStationId, $withNewPlaylist, $withoutPlaylist);
   }
+}
+
+
+sub suppressPlayersMessage {
+  my ($class, $master, $song, $message) = @_;
+  if ($message eq 'PROBLEM_CONNECTING') {
+    my $url = $song->track()->url;
+    $log->error("stream error: $url PROBLEM_CONNECTING");
+    # error possibly due to stale playlist
+    # clear playlist cache to force fetch of new playlist
+    my $client = $song->master();
+    $client->master->pluginData('station', 0);
+  }
+  return 0;
+}
+
+
+sub handleDirectError {
+  my ($class, $client, $url, $response, $status_line) = @_;
+  $log->error("direct stream error: $url [$response] $status_line");
+  # error possibly due to stale playlist
+  # clear playlist cache to force fetch of new playlist
+  $client->master->pluginData('station', 0);
+  # notify the controller
+  $client->controller()->playerStreamingFailed($client, 'PLUGIN_PYRRHA_STREAM_FAILED');
 }
 
 

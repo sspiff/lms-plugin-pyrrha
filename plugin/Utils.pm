@@ -22,11 +22,14 @@ my $prefs = preferences( 'plugin.pyrrha' );
 my %cache = ();
 
 
+my $WEBSVC_LIFETIME = (60 * 60 * 4) - (60 * 2);
+
+
 sub getWebService {
   my ($successCb, $errorCb) = @_;
 
   my $websvc = $cache{'webService'};
-  if (defined $websvc) {
+  if (defined $websvc && time() < $websvc->{'expiresAt'}) {
     $log->info('using cached websvc');
     $successCb->($websvc);
     return;
@@ -36,7 +39,8 @@ sub getWebService {
   $websvc = WebService::Pandora->new(
               username => $prefs->get('username'),
               password => $prefs->get('password'),
-              partner  => WebService::Pandora::Partner::AIR->new()
+              partner  => WebService::Pandora::Partner::AIR->new(),
+              expiresAt => time() + $WEBSVC_LIFETIME,
             );
   if (!$websvc->login()) {
     my $e = $websvc->error();

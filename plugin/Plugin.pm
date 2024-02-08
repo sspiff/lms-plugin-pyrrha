@@ -5,6 +5,7 @@ use warnings;
 
 use base qw(Slim::Plugin::OPMLBased);
 
+use Digest::MD5 qw(md5_hex);
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Plugins::Pyrrha::Utils qw(getStationList);
@@ -35,13 +36,14 @@ sub handleFeed {
   my $withStations = sub {
     my ($stations) = @_;
     my $username = $prefs->get('username');
+    my $usernameDigest = md5_hex($username);
     foreach my $station ( @$stations ) {
       my $stationId = $station->{'stationId'};
       my $artUrl = $station->{'artUrl'};
       push @$items, {
         'name'  => $station->{'stationName'},
         'type'  => 'audio',
-        'url'   => "pyrrha://$username/$stationId.mp3",
+        'url'   => "pyrrha://$usernameDigest/$stationId.mp3",
         'image' => $artUrl ? $artUrl : 'html/images/radio.png',
       };
     }

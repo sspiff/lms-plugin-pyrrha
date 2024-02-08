@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<extensions>
+  <details>
+    <title lang="EN">Pyrrha</title>
+  </details>
+  <plugins>
+    <plugin name="Pyrrha" version="__VERSION__" minTarget="8.3.0" maxTarget="*">
+      <title lang="EN">Pyrrha</title>
+      <desc lang="EN">Daughter of Pandora</desc>
+      <url>__ZIPURL__</url>
+      <sha>__SHA__</sha>
+      <creator>sspiff</creator>
+    </plugin>
+  </plugins>
+</extensions>

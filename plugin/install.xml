@@ -2,7 +2,7 @@
 <extension>
   <id>CF2D3A6A-F98B-4750-9206-444C8BCF33AA</id>
   <name>PLUGIN_PYRRHA_MODULE_NAME</name>
-  <version>0.2.0</version>
+  <version>__VERSION__</version>
   <description>PLUGIN_PYRRHA_DAUGHTEROFPANDORA</description>
   <creator>sspiff</creator>
   <module>Plugins::Pyrrha::Plugin</module>

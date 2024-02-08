@@ -16,7 +16,7 @@ sub page {
 }
 
 sub prefs {
-  return ($prefs, 'username', 'password');
+  return ($prefs, 'username', 'password', 'forceNonMaterialIcon');
 }
 
 sub handler {

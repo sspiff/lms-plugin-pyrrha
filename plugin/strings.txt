@@ -63,3 +63,14 @@ PLUGIN_PYRRHA_STREAM_FAILED
 	RU	Аудиопоток прерван. Переход на следующую дорожку.
 	SV	Anslutningen till ljudströmmen bröts, hoppar till nästa spår.
 
+PLUGIN_PYRRHA_MATERIAL_SKIN
+	CS	Material Skin
+	DE	Material-Skin
+	EN	Material Skin
+	NL	Material Skin
+	ZH_TW	Material Skin
+	ZH_CN	Material主题
+
+PLUGIN_PYRRHA_FORCE_NONMATERIAL_APPICON
+	EN	Force non-Material app icon.
+

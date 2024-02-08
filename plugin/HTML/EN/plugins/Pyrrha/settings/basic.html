@@ -9,7 +9,16 @@
 	[% END %]
 
 	[% WRAPPER setting title="SETUP_PASSWORD" desc="" %]
+	<p>
 		<input type="password" class="stdedit" name="pref_password" id="password" value="[% prefs.pref_password | html %]" size="40">
+	</p>
+	[% END %]
+
+	[% WRAPPER setting title="PLUGIN_PYRRHA_MATERIAL_SKIN" desc="" %]
+	<p>
+		<input type="checkbox" class="stdedit" name="pref_forceNonMaterialIcon" id="forceNonMaterialIcon" [% IF prefs.pref_forceNonMaterialIcon %]checked="checked" [% END %] value="1">
+		<label for="forceNonMaterialIcon">[% "PLUGIN_PYRRHA_FORCE_NONMATERIAL_APPICON" | string %]</label>
+	</p>
 	[% END %]
 
 [% PROCESS settings/footer.html %]

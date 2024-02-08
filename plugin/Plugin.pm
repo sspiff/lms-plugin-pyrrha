@@ -84,5 +84,19 @@ sub initPlugin {
   );
 }
 
+
+sub _pluginDataFor {
+  my ($class, $key) = @_;
+
+  my $data = $class->SUPER::_pluginDataFor($key);
+
+  if ($key eq 'icon' && $prefs->get('forceNonMaterialIcon')) {
+    $data =~ s/_svg\.png$/.png/;
+  }
+
+  return $data;
+}
+
+
 1;
 

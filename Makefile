@@ -23,7 +23,7 @@ dist:
 	  env TZ= touch -d $(GIT_COMMIT_DATE) "$$f" ;    \
 	  done
 	# zip it up
-	(cd $(OBJDIR)/plugin && find ./ -type f | sort \
+	(cd $(OBJDIR)/plugin && find . -type f | sort \
 	  | zip -X --names-stdin ../plugin.zip)
 	# create the distribution
 	mkdir -p $(OBJDIR)/dist

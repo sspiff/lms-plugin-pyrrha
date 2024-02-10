@@ -8,6 +8,10 @@ PLUGIN_ZIPURL    = XXX
 
 OBJDIR = obj
 
+ZIPEXTRAS += README.md
+ZIPEXTRAS += LICENSE
+ZIPEXTRAS += 3RDPARTY.md
+
 
 .PHONY: dist
 dist:
@@ -15,6 +19,7 @@ dist:
 	mkdir -p $(OBJDIR)
 	# seed the plugin dir
 	tar cf - plugin | (cd $(OBJDIR) && tar xf -)
+	cp $(ZIPEXTRAS) $(OBJDIR)/plugin/
 	# update install.xml with our version
 	m4 -D__VERSION__=$(PLUGIN_VERSION) plugin/install.xml \
 	  > $(OBJDIR)/plugin/install.xml

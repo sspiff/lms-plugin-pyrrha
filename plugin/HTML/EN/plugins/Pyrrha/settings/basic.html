@@ -1,7 +1,12 @@
 [% PROCESS settings/header.html %]
 
-	[% WRAPPER setting title="PLUGIN_PYRRHA_MODULE_NAME" desc="" %]
-		<div class="prefDesc">[% "PLUGIN_PYRRHA_DAUGHTEROFPANDORA" | string %]</div>
+	[% WRAPPER settingSection %]
+		[% WRAPPER settingGroup title="PLUGIN_PYRRHA_MODULE_NAME" desc="" %]
+			<div class="prefDesc"><p>[% "PLUGIN_PYRRHA_DAUGHTEROFPANDORA" | string %]</p></div>
+		[% END %]
+		[% WRAPPER settingGroup title="" desc="" %]
+			<div class="prefDesc">[% "PLUGIN_PYRRHA_DISCLAIMER" | string %]</div>
+		[% END %]
 	[% END %]
 
 	[% WRAPPER setting title="SETUP_USERNAME" desc="" %]

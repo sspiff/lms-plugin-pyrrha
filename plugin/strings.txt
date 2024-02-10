@@ -74,3 +74,5 @@ PLUGIN_PYRRHA_MATERIAL_SKIN
 PLUGIN_PYRRHA_FORCE_NONMATERIAL_APPICON
 	EN	Force non-Material app icon.
 
+PLUGIN_PYRRHA_DISCLAIMER
+	EN	<p>This is beta software, currently at a proof-of-concept stage.  <em>Use at your own risk.</em></p> <p>This plugin is not approved by Pyrrha's mother, and as such, its use may not be tolerated. <em>Invite the wrath of the Gods at your own risk.</em></p>

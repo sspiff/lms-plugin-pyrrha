@@ -44,7 +44,7 @@ sub handleFeed {
         'name'  => $station->{'stationName'},
         'type'  => 'audio',
         'url'   => "pyrrha://$usernameDigest/$stationId.mp3",
-        'image' => $artUrl ? $artUrl : 'html/images/radio.png',
+        'image' => $artUrl ? $artUrl : 'plugins/Pyrrha/images/icon_svg.png',
       };
     }
     $callback->(\%opml);

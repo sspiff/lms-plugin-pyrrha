@@ -22,7 +22,8 @@ my $prefs = preferences( 'plugin.pyrrha' );
 my %cache = ();
 
 
-my $WEBSVC_LIFETIME = (60 * 60 * 4) - (60 * 2);
+my $WEBSVC_LIFETIME = (60 * 60 * 4) - (60 * 2);  # 4 hrs - 2 min grace
+my $STATIONLIST_LIFETIME = 60 * 20;              # 20 min
 
 
 sub getWebService {
@@ -65,9 +66,9 @@ sub getStationList {
 
   my $websvc = $cache{'webService'};
   my $stationList = $cache{'stationList'};
-  if (defined $stationList) {
+  if (defined $stationList && time() < $stationList->{'expiresAt'}) {
     $log->info('using cached station list');
-    $successCb->($stationList, $websvc);
+    $successCb->($stationList->{'stations'}, $websvc);
     return;
   }
 
@@ -76,9 +77,12 @@ sub getStationList {
     $log->info('fetching station list');
     my $result = $websvc->getStationList(includeStationArtUrl => JSON::true());
     if ($result) {
-      my $stationList = $result->{'stations'};
+      my $stationList = {
+        expiresAt => time() + $STATIONLIST_LIFETIME,
+        stations  => $result->{'stations'},
+      };
       $cache{'stationList'} = $stationList;
-      $successCb->($stationList, $websvc);
+      $successCb->($stationList->{'stations'}, $websvc);
     }
     else {
       my $e = $websvc->error();

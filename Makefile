@@ -4,7 +4,7 @@ PLUGIN_NAME     := $(shell sed -n 's,.*<plugin.*name="\([^"]*\)".*,\1,p' misc/re
 PLUGIN_VERSION  := $(shell git describe)
 GIT_COMMIT_DATE := $(shell env TZ= date -r `git log -1 --format="%at"` '+%Y-%m-%dT%H:%M:%S')
 PLUGIN_ZIP       = lms-plugin-$(PLUGIN_NAME)-$(PLUGIN_VERSION).zip
-PLUGIN_ZIPURL    = XXX
+PLUGIN_ZIPURL    = https://github.com/sspiff/lms-plugin-pyrrha/releases/download/$(PLUGIN_VERSION)/$(PLUGIN_ZIP)
 
 OBJDIR = obj
 

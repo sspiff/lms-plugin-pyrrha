@@ -1,6 +1,6 @@
 
 
-PLUGIN_NAME     := $(shell sed -n 's,.*<plugin.*name="\([^"]*\)".*,\1,p' extensions.xml)
+PLUGIN_NAME     := $(shell sed -n 's,.*<plugin.*name="\([^"]*\)".*,\1,p' misc/repo.xml)
 PLUGIN_VERSION  := $(shell git describe)
 GIT_COMMIT_DATE := $(shell env TZ= date -r `git log -1 --format="%at"` '+%Y-%m-%dT%H:%M:%S')
 PLUGIN_ZIP       = lms-plugin-$(PLUGIN_NAME)-$(PLUGIN_VERSION).zip
@@ -36,7 +36,7 @@ dist:
 	m4 -D__VERSION__=$(PLUGIN_VERSION)                                \
 	   -D__ZIPURL__=$(PLUGIN_ZIPURL)                                  \
 	   -D__SHA__=`shasum $(OBJDIR)/dist/$(PLUGIN_ZIP) | cut -d\  -f1` \
-	   extensions.xml > $(OBJDIR)/dist/extensions.xml
+	   misc/repo.xml > $(OBJDIR)/dist/repo.xml
 
 
 .PHONY: clean

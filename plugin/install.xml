@@ -5,6 +5,7 @@
   <version>__VERSION__</version>
   <description>PLUGIN_PYRRHA_DAUGHTEROFPANDORA</description>
   <creator>sspiff</creator>
+  <homepageURL>https://github.com/sspiff/lms-plugin-pyrrha</homepageURL>
   <module>Plugins::Pyrrha::Plugin</module>
   <icon>plugins/Pyrrha/images/icon_svg.png</icon>
   <optionsURL>plugins/Pyrrha/settings/basic.html</optionsURL>

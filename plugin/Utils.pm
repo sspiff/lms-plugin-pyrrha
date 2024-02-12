@@ -62,11 +62,13 @@ sub getWebService {
 
 
 sub getStationList {
-  my ($successCb, $errorCb) = @_;
+  my ($successCb, $errorCb, %args) = @_;
+  my $noRefresh = $args{'noRefresh'};
 
   my $websvc = $cache{'webService'};
   my $stationList = $cache{'stationList'};
-  if (defined $stationList && time() < $stationList->{'expiresAt'}) {
+  if (defined $stationList &&
+      ($noRefresh || time() < $stationList->{'expiresAt'})) {
     $log->info('using cached station list');
     $successCb->($stationList->{'stations'}, $websvc);
     return;
@@ -127,7 +129,7 @@ sub getStationToken {
     $errorCb->(@_);
   };
 
-  getStationList($withStationList, $withoutStationList);
+  getStationList($withStationList, $withoutStationList, noRefresh => 1);
 }
 
 

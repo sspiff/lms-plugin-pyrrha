@@ -26,7 +26,8 @@ squeezelite running under piCorePlayer on a pair of Raspberry Pis.
 
 1. In LMS, navigate to the plugin settings page.  Near the bottom, find the
    **Additional Repositories** section.  Add this URL as an additional
-   third-party extension repository: XXX
+   third-party extension repository:
+   https://github.com/sspiff/lms-plugin-pyrrha/releases/download/repo-stable/repo.xml
 2. After some time (or perhaps an LMS restart), refresh that same plugin
    settings page.  Near the bottom, you should now have a Pyrrha section.
    Check the box to enable the Pyrrha plugin, and restart LMS.

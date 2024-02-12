@@ -189,3 +189,6 @@ sub getMetadataFor {
   }
 }
 
+
+1;
+

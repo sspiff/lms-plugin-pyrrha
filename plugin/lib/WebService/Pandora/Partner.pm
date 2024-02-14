@@ -45,7 +45,7 @@ sub error {
 
 sub login {
 
-    my ( $self ) = @_;
+    my ( $self, $cb ) = @_;
 
     # make sure all arguments are given
     if ( !defined( $self->{'username'} ) ||
@@ -56,6 +56,7 @@ sub login {
          !defined( $self->{'host'} ) ) {
 
         $self->error( 'The username, password, deviceModel, encryption_key, decryption_key, and host must all be provided to the constructor.' );
+        $self->{'cb'}->();
         return;
     }
 
@@ -69,16 +70,15 @@ sub login {
                                                               'deviceModel' => $self->{'deviceModel'},
                                                               'version' => "5"} );
 
-    my $result = $method->execute();
-
-    # detect error
-    if ( !$result ) {
-
-        $self->error( $method->error() );
-        return;
-    }
-
-    return $result;
+    $method->execute(
+        sub {
+            my ($res) = @_;
+            if ($method->error) {
+                $self->error( $method->error )
+            }
+            $cb->($res);
+        }
+    );
 }
 
 1;

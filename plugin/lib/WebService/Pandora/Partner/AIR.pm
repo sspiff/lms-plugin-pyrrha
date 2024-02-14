@@ -20,7 +20,7 @@ sub new {
 				   decryption_key => 'U#IO$RZPAB%VX2',
 				   encryption_key => '2%3WCL*JU$MP]4',
 				   host => 'internal-tuner.pandora.com' );
-    
+
     return $self;
 }
 

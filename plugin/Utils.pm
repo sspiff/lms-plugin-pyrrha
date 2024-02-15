@@ -77,7 +77,10 @@ sub getStationList {
   my $withWebsvc = sub {
     my ($websvc) = @_;
     $log->info('fetching station list');
-    my $result = $websvc->getStationList(includeStationArtUrl => JSON::true());
+    my $result = $websvc->getStationList(
+        includeStationArtUrl => JSON::true(),
+        returnAllStations => JSON::true(),
+      );
     if ($result) {
       my $stationList = {
         expiresAt => time() + $STATIONLIST_LIFETIME,

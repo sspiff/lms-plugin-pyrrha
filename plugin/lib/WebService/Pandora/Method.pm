@@ -60,7 +60,7 @@ sub execute {
     # make sure both name and host were given
     if ( !defined( $self->{'name'} ) || !defined( $self->{'host'} ) ) {
         $self->error( 'Both the name and host must be provided to the constructor.' );
-        $cb->();
+        $cb->(error => $self->error());
         return;
     }
 
@@ -88,7 +88,7 @@ sub execute {
         # detect error decrypting
         if ( !defined( $json_data ) ) {
             $self->error( 'An error occurred encrypting our JSON data: ' . $self->{'cryptor'}->error() );
-            $cb->();
+            $cb->(error => $self->error());
             return;
         }
     }
@@ -136,15 +136,22 @@ sub execute {
 
             # handle pandora error
             if ( $json_data->{'stat'} ne 'ok' ) {
-                $self->error( "$self->{'name'} error $json_data->{'code'}: $json_data->{'message'}" );
+                $self->error( {
+                  'apiCode'    => $json_data->{'code'},
+                  'apiMessage' => $json_data->{'message'},
+                  'message'    => "$self->{'name'} error $json_data->{'code'}: $json_data->{'message'}",
+                } );
+                $cb->(error => $self->error());
             }
-            my $result = defined($json_data->{'result'}) ? $json_data->{'result'} : undef;
-            $cb->($result);
+            else {
+                my $result = defined($json_data->{'result'}) ? $json_data->{'result'} : 1;
+                $cb->(result => $result);
+            }
         },
         sub {
             my ($req, $error) = @_;
             $self->error( $error );
-            $cb->();
+            $cb->(error => $self->error());
         },
         {
             timeout => $self->{timeout},

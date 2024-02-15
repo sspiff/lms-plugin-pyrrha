@@ -56,7 +56,7 @@ sub login {
          !defined( $self->{'host'} ) ) {
 
         $self->error( 'The username, password, deviceModel, encryption_key, decryption_key, and host must all be provided to the constructor.' );
-        $self->{'cb'}->();
+        $cb->(error => $self->error());
         return;
     }
 
@@ -72,11 +72,11 @@ sub login {
 
     $method->execute(
         sub {
-            my ($res) = @_;
-            if ($method->error) {
-                $self->error( $method->error )
+            my (%res) = @_;
+            if (defined $res{'error'}) {
+                $self->error( $res{'error'} )
             }
-            $cb->($res);
+            $cb->(@_);
         }
     );
 }

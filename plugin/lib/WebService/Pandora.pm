@@ -63,20 +63,20 @@ sub login {
     # make sure both username and password were given
     if ( !defined( $self->{'username'} ) || !defined( $self->{'password'} ) ) {
         $self->error( 'Both username and password must be given in the constructor.' );
-        $cb->();
+        $cb->(error => $self->error());
         return;
     }
 
     # first, do the partner login
     $self->{'partner'}->login(
         sub {
-            my ($ret) = @_;
-            if ($self->{'partner'}->error) {
-                $self->error($self->{'partner'}->error);
-                $cb->();
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error($ret{'error'});
+                $cb->(@_);
             }
             else {
-                $self->partnerCallback($ret, $cb);
+                $self->partnerCallback($ret{'result'}, $cb);
             }
         }
     );
@@ -96,7 +96,7 @@ sub partnerCallback {
          !defined( $self->{'partnerId'} ) ||
          !defined( $self->{'syncTime'} ) ) {
         $self->error( 'Either partnerAuthToken, partnerId, or syncTime was not returned!' );
-        $cb->();
+        $cb->(error => $self->error());
         return;
     }
 
@@ -106,7 +106,7 @@ sub partnerCallback {
     # detect error decrypting
     if ( !defined( $self->{'syncTime'} ) ) {
         $self->error( "An error occurred decrypting the syncTime: " . $self->{'cryptor'}->error() );
-        $cb->();
+        $cb->(error => $self->error());
         return;
     }
 
@@ -128,13 +128,13 @@ sub partnerCallback {
                                                               'partnerAuthToken' => $self->{'partnerAuthToken'}} );
     $method->execute(
         sub {
-            my ($ret) = @_;
-            if ($method->error) {
-                $self->error( $method->error );
-                $cb->();
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
+                $cb->(@_);
             }
             else {
-                $self->loginCallback($ret, $cb);
+                $self->loginCallback($ret{'result'}, $cb);
             }
         }
     );
@@ -150,9 +150,11 @@ sub loginCallback {
     # make sure we actually got them
     if ( !defined( $self->{'userId'} ) || !defined( $self->{'userAuthToken'} ) ) {
         $self->error( 'Either userId or userAuthToken was not returned!' );
+        $cb->(error => $self->error());
     }
-
-    $cb->();
+    else {
+        $cb->(result => 1);
+    }
 }
 
 sub getBookmarks {
@@ -204,11 +206,11 @@ sub getStationList {
 
     $method->execute(
         sub {
-            my ($ret) = @_;
-            if ($method->error) {
-                $self->error( $method->error );
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
             }
-            $cb->($ret);
+            $cb->(@_);
         }
     );
 }
@@ -275,11 +277,11 @@ sub getStation {
 
     $method->execute(
         sub {
-            my ($ret) = @_;
-            if ($method->error) {
-                $self->error( $method->error );
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
             }
-            $cb->($ret);
+            $cb->(@_);
         }
     );
 }
@@ -354,11 +356,11 @@ sub getPlaylist {
 
     $method->execute(
         sub {
-            my ($ret) = @_;
-            if ($method->error) {
-                $self->error( $method->error );
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
             }
-            $cb->($ret);
+            $cb->(@_);
         }
     );
 }

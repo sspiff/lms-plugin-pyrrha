@@ -186,7 +186,7 @@ sub getBookmarks {
 
 sub getStationList {
 
-    my ( $self, $cb ) = @_;
+    my ( $self, $cb, %args ) = @_;
 
     # create the user.getStationList method w/ appropriate params
     my $method = WebService::Pandora::Method->new( name => 'user.getStationList',
@@ -200,8 +200,7 @@ sub getStationList {
                                                    encrypt => 1,
                                                    cryptor => $self->{'cryptor'},
                                                    timeout => $self->{'timeout'},
-                                                   params => { includeStationArtUrl => JSON::true(),
-                                                               stationArtSize => 'W130H130' } );
+                                                   params => \%args );
 
     $method->execute(
         sub {

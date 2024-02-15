@@ -110,7 +110,7 @@ sub partnerCallback {
         return;
     }
 
-    $self->{'syncTime'} = substr( $self->{'syncTime'}, 4 );
+    $self->{'syncTime'} = time() - int(substr( $self->{'syncTime'}, 4 ));
 
     # now create and execute the method for the user login request
     my $method = WebService::Pandora::Method->new( name => 'auth.userLogin',

@@ -72,7 +72,7 @@ sub execute {
     }
 
     if ( defined( $self->{'syncTime'} ) ) {
-        $json_data->{'syncTime'} = int( $self->{'syncTime'} );
+        $json_data->{'syncTime'} = time() + $self->{'syncTime'};
     }
 
     # merge the two required params with the additional user-supplied args

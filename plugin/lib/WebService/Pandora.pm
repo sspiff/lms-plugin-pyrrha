@@ -29,7 +29,6 @@ sub new {
 
     # be nice and default to iOS partner if one wasn't given..
     if ( !defined( $self->{'partner'} ) ) {
-
         $self->{'partner'} = WebService::Pandora::Partner::iOS->new();
     }
 
@@ -59,26 +58,33 @@ sub error {
 
 sub login {
 
-    my ( $self ) = @_;
+    my ( $self, $cb ) = @_;
 
     # make sure both username and password were given
     if ( !defined( $self->{'username'} ) || !defined( $self->{'password'} ) ) {
-
         $self->error( 'Both username and password must be given in the constructor.' );
+        $cb->(error => $self->error());
         return;
     }
 
     # first, do the partner login
-    my $loginTime = time();
-    my $ret = $self->{'partner'}->login();
+    $self->{'partner'}->login(
+        sub {
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error($ret{'error'});
+                $cb->(@_);
+            }
+            else {
+                $self->partnerCallback($ret{'result'}, $cb);
+            }
+        }
+    );
+}
 
-    # detect error
-    if ( !$ret ) {
+sub partnerCallback {
 
-        # return the error message from the partner
-        $self->error( $self->{'partner'}->error() );
-        return;
-    }
+    my ( $self, $ret, $cb ) = @_;
 
     # store the important attributes we got back as we'll need them later
     $self->{'partnerAuthToken'} = $ret->{'partnerAuthToken'};
@@ -89,8 +95,8 @@ sub login {
     if ( !defined( $self->{'partnerAuthToken'} ) ||
          !defined( $self->{'partnerId'} ) ||
          !defined( $self->{'syncTime'} ) ) {
-
         $self->error( 'Either partnerAuthToken, partnerId, or syncTime was not returned!' );
+        $cb->(error => $self->error());
         return;
     }
 
@@ -99,12 +105,12 @@ sub login {
 
     # detect error decrypting
     if ( !defined( $self->{'syncTime'} ) ) {
-
         $self->error( "An error occurred decrypting the syncTime: " . $self->{'cryptor'}->error() );
+        $cb->(error => $self->error());
         return;
     }
 
-    $self->{'syncTime'} = $loginTime - int(substr( $self->{'syncTime'}, 4 ));
+    $self->{'syncTime'} = time() - int(substr( $self->{'syncTime'}, 4 ));
 
     # now create and execute the method for the user login request
     my $method = WebService::Pandora::Method->new( name => 'auth.userLogin',
@@ -120,15 +126,22 @@ sub login {
                                                               'username' => $self->{'username'},
                                                               'password' => $self->{'password'},
                                                               'partnerAuthToken' => $self->{'partnerAuthToken'}} );
+    $method->execute(
+        sub {
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
+                $cb->(@_);
+            }
+            else {
+                $self->loginCallback($ret{'result'}, $cb);
+            }
+        }
+    );
+}
 
-    $ret = $method->execute();
-
-    # detect error
-    if ( !$ret ) {
-
-        $self->error( $method->error() );
-        return;
-    }
+sub loginCallback {
+    my ($self, $ret, $cb) = @_;
 
     # store even more attributes we'll need later
     $self->{'userId'} = $ret->{'userId'};
@@ -136,13 +149,12 @@ sub login {
 
     # make sure we actually got them
     if ( !defined( $self->{'userId'} ) || !defined( $self->{'userAuthToken'} ) ) {
-
         $self->error( 'Either userId or userAuthToken was not returned!' );
-        return;
+        $cb->(error => $self->error());
     }
-
-    # success
-    return 1;
+    else {
+        $cb->(result => 1);
+    }
 }
 
 sub getBookmarks {
@@ -176,7 +188,7 @@ sub getBookmarks {
 
 sub getStationList {
 
-    my ( $self, %args ) = @_;
+    my ( $self, $cb, %args ) = @_;
 
     # create the user.getStationList method w/ appropriate params
     my $method = WebService::Pandora::Method->new( name => 'user.getStationList',
@@ -192,15 +204,15 @@ sub getStationList {
                                                    timeout => $self->{'timeout'},
                                                    params => \%args );
 
-    my $ret = $method->execute();
-
-    if ( !$ret ) {
-
-        $self->error( $method->error() );
-        return;
-    }
-
-    return $ret;
+    $method->execute(
+        sub {
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
+            }
+            $cb->(@_);
+        }
+    );
 }
 
 sub getStationListChecksum {
@@ -234,7 +246,7 @@ sub getStationListChecksum {
 
 sub getStation {
 
-    my ( $self, %args ) = @_;
+    my ( $self, $cb, %args ) = @_;
 
     my $stationToken = $args{'stationToken'};
     my $includeExtendedAttributes = $args{'includeExtendedAttributes'};
@@ -263,15 +275,15 @@ sub getStation {
                                                    params => {'stationToken' => $stationToken,
                                                               'includeExtendedAttributes' => $includeExtendedAttributes} );
 
-    my $ret = $method->execute();
-
-    if ( !$ret ) {
-
-        $self->error( $method->error() );
-        return;
-    }
-
-    return $ret;
+    $method->execute(
+        sub {
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
+            }
+            $cb->(@_);
+        }
+    );
 }
 
 sub search {
@@ -314,7 +326,7 @@ sub search {
 
 sub getPlaylist {
 
-    my ( $self, %args ) = @_;
+    my ( $self, $cb, %args ) = @_;
 
     my $stationToken = $args{'stationToken'};
 
@@ -337,18 +349,20 @@ sub getPlaylist {
                                                    encrypt => 1,
                                                    cryptor => $self->{'cryptor'},
                                                    timeout => $self->{'timeout'},
-                                                   params => {'stationToken' => $stationToken,
-                                                              'includeTrackLength' => JSON::true()} );
+                                                   params => {
+                                                     'stationToken' => $stationToken,
+                                                     'includeTrackLength' => JSON::true(),
+                                                   } );
 
-    my $ret = $method->execute();
-
-    if ( !$ret ) {
-
-        $self->error( $method->error() );
-        return;
-    }
-
-    return $ret;
+    $method->execute(
+        sub {
+            my (%ret) = @_;
+            if (defined $ret{'error'}) {
+                $self->error( $ret{'error'} );
+            }
+            $cb->(@_);
+        }
+    );
 }
 
 sub explainTrack {

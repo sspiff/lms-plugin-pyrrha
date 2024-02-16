@@ -43,21 +43,23 @@ sub getWebService {
               partner  => WebService::Pandora::Partner::AIR->new(),
               expiresAt => time() + $WEBSVC_LIFETIME,
             );
-  if (!$websvc->login()) {
-    my $e = $websvc->error();
-    if (ref $e eq 'HASH') {
-      $e = $e->{'message'}
+
+  $websvc->login(sub {
+    my (%r) = @_;
+    my ($result, $error) = @r{'result', 'error'};
+    if ($error) {
+      if (ref $error eq 'HASH') {
+        $error = $error->{'message'};
+      }
+      $log->error($error);
+      $errorCb->($error);
     }
-    $log->error($e);
-    $errorCb->($e);
-    return;
-  }
-  $log->info('login successful');
-
-  $cache{'webService'} = $websvc;
-
-  $successCb->($websvc);
-  return;
+    else {
+      $log->info('login successful');
+      $cache{'webService'} = $websvc;
+      $successCb->($websvc);
+    }
+  });
 }
 
 
@@ -77,31 +79,33 @@ sub getStationList {
   my $withWebsvc = sub {
     my ($websvc) = @_;
     $log->info('fetching station list');
-    my $result = $websvc->getStationList(
-        includeStationArtUrl => JSON::true(),
-        returnAllStations => JSON::true(),
-      );
-    if ($result) {
-      my $stationList = {
-        expiresAt => time() + $STATIONLIST_LIFETIME,
-        stations  => $result->{'stations'},
-      };
-      $cache{'stationList'} = $stationList;
-      $successCb->($stationList->{'stations'}, $websvc);
-    }
-    else {
-      my $e = $websvc->error();
-      if (ref $e eq 'HASH') {
-        if ($e->{'apiCode'} == 1001) {
-          # auth token expired, clear our cached credentials
-          $log->info('auth token expired, clearing cache');
-          %cache = ();
-        }
-        $e = $e->{'message'}
+    $websvc->getStationList(sub {
+      my (%r) = @_;
+      my ($result, $error) = @r{'result', 'error'};
+      if ($result) {
+        my $stationList = {
+          expiresAt => time() + $STATIONLIST_LIFETIME,
+          stations  => $result->{'stations'},
+        };
+        $cache{'stationList'} = $stationList;
+        $successCb->($stationList->{'stations'}, $websvc);
       }
-      $log->error($e);
-      $errorCb->("Error getting station list ($e)");
-    }
+      else {
+        if (ref $error eq 'HASH') {
+          if ($error->{'apiCode'} == 1001) {
+            # auth token expired, clear our cached credentials
+            $log->info('auth token expired, clearing cache');
+            %cache = ();
+          }
+          $error = $error->{'message'}
+        }
+        $log->error($error);
+        $errorCb->("Error getting station list ($error)");
+      }
+    },
+      includeStationArtUrl => JSON::true(),
+      returnAllStations => JSON::true(),
+    );
   };
 
   my $withoutWebsvc = sub {
@@ -145,25 +149,28 @@ sub getPlaylist {
 
   my $withStationToken = sub {
     my ($stationToken, $websvc) = @_;
-    my $result = $websvc->getPlaylist(stationToken => $stationToken);
-    if ($result) {
-      my $playlist = $result->{'items'};
-      $successCb->($playlist);
-    }
-    else {
-      my $e = $websvc->error();
-      if (ref $e eq 'HASH') {
-        if ($e->{'apiCode'} == 1001) {
-          # auth token expired, clear our cached credentials
-          $log->info('auth token expired, clearing cache');
-          %cache = ();
-        }
-        $e = $e->{'message'}
+    $websvc->getPlaylist(sub {
+      my (%r) = @_;
+      my ($result, $error) = @r{'result', 'error'};
+      if ($result) {
+        my $playlist = $result->{'items'};
+        $successCb->($playlist);
       }
-      $log->error($e);
-      $errorCb->("Error getting play list ($e)");
-    }
-
+      else {
+        if (ref $error eq 'HASH') {
+          if ($error->{'apiCode'} == 1001) {
+            # auth token expired, clear our cached credentials
+            $log->info('auth token expired, clearing cache');
+            %cache = ();
+          }
+          $error = $error->{'message'}
+        }
+        $log->error($error);
+        $errorCb->("Error getting play list ($error)");
+      }
+    },
+      stationToken => $stationToken
+    );
   };
 
   getStationToken($stationId, $withStationToken, $onError);

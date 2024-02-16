@@ -12,7 +12,7 @@
   <type>2</type>
   <targetApplication>
     <id>Logitech Media Server</id>
-    <minVersion>8.3</minVersion>
+    <minVersion>8.2</minVersion>
     <maxVersion>*</maxVersion>
   </targetApplication>
 </extension>

@@ -69,8 +69,11 @@ sub getStationList {
 
   my $websvc = $cache{'webService'};
   my $stationList = $cache{'stationList'};
-  if (defined $stationList &&
-      ($noRefresh || time() < $stationList->{'expiresAt'})) {
+  my $now = time();
+  if (defined $websvc &&
+      $now < $websvc->{'expiresAt'} &&
+      defined $stationList &&
+      ($noRefresh || $now < $stationList->{'expiresAt'})) {
     $log->info('using cached station list');
     $successCb->($stationList->{'stations'}, $websvc);
     return;

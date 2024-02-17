@@ -4,7 +4,7 @@
     <title lang="EN">Pyrrha</title>
   </details>
   <plugins>
-    <plugin name="Pyrrha" version="__VERSION__" minTarget="8.2.0" maxTarget="*">
+    <plugin name="Pyrrha" version="__VERSION__" minTarget="8.3.0" maxTarget="*">
       <title lang="EN">Pyrrha</title>
       <desc lang="EN">Daughter of Pandora</desc>
       <category>musicservices</category>

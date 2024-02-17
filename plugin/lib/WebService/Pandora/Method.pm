@@ -35,7 +35,7 @@ sub new {
     bless( $self, $class );
 
     # create and store json object
-    $self->{'json'} = JSON->new();
+    $self->{'json'} = JSON->new()->utf8;
 
     return $self;
 }

@@ -8,60 +8,61 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   inkscape:version="1.0 (4035a4f, 2020-05-01)"
-   sodipodi:docname="icon-material.svg"
-   id="svg8"
-   version="1.1"
-   viewBox="0 0 12 12"
-   height="12mm"
-   width="12mm"
+   inkscape:export-ydpi="1058.33"
    inkscape:export-xdpi="1058.33"
-   inkscape:export-ydpi="1058.33">
+   width="24"
+   height="24"
+   viewBox="0 0 6.3499998 6.3499998"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="icon-material.svg"
+   inkscape:version="1.0 (4035a4f, 2020-05-01)">
   <defs
      id="defs2">
     <linearGradient
-       id="linearGradient849"
-       inkscape:collect="always">
+       inkscape:collect="always"
+       id="linearGradient849">
       <stop
-         id="stop845"
+         style="stop-color:#fe0000;stop-opacity:1;"
          offset="0"
-         style="stop-color:#fe0000;stop-opacity:1;" />
+         id="stop845" />
       <stop
-         id="stop847"
+         style="stop-color:#fe0000;stop-opacity:0;"
          offset="1"
-         style="stop-color:#fe0000;stop-opacity:0;" />
+         id="stop847" />
     </linearGradient>
     <radialGradient
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.3213809,-0.84115284,1.3395689,2.1043511,-178.04226,-84.679364)"
-       r="3.307281"
-       fy="70.283928"
-       fx="68.0289"
-       cy="70.283928"
-       cx="68.0289"
-       id="radialGradient853"
+       inkscape:collect="always"
        xlink:href="#linearGradient849"
-       inkscape:collect="always" />
+       id="radialGradient853"
+       cx="68.0289"
+       cy="70.283928"
+       fx="68.0289"
+       fy="70.283928"
+       r="3.307281"
+       gradientTransform="matrix(1.3213809,-0.84115284,1.3395689,2.1043511,-178.04226,-84.679364)"
+       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
-     inkscape:window-maximized="0"
-     inkscape:window-y="25"
-     inkscape:window-x="0"
-     inkscape:window-height="920"
-     inkscape:window-width="1252"
-     showgrid="false"
-     inkscape:document-rotation="0"
-     inkscape:current-layer="layer1"
-     inkscape:document-units="mm"
-     inkscape:cy="24.830602"
-     inkscape:cx="19.412028"
-     inkscape:zoom="5.6"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0.0"
-     borderopacity="1.0"
-     bordercolor="#666666"
+     units="px"
+     id="base"
      pagecolor="#ffffff"
-     id="base" />
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="10.83"
+     inkscape:cx="19.412028"
+     inkscape:cy="24.830602"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1252"
+     inkscape:window-height="920"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -70,24 +71,24 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     id="layer1"
+     inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     inkscape:label="Layer 1">
+     id="layer1">
     <text
-       id="text835"
-       y="9.7994041"
-       x="2.2270536"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.58329999999999949px;line-height:1.25;font-family:'Cinzel Decorative';-inkscape-font-specification:'Cinzel Decorative, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke-width:0.264583;"
-       xml:space="preserve"><tspan
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.58329999999999949px;font-family:'Cinzel Decorative';-inkscape-font-specification:'Cinzel Decorative, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke-width:0.264583;"
-         y="9.7994041"
-         x="2.2270536"
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.40833px;line-height:1.25;font-family:'Cinzel Decorative';-inkscape-font-specification:'Cinzel Decorative, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke-width:0.264583"
+       x="0.53392917"
+       y="5.8345904"
+       id="text835"><tspan
+         sodipodi:role="line"
          id="tspan833"
-         sodipodi:role="line">P</tspan></text>
+         x="0.53392917"
+         y="5.8345904"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.40833px;font-family:'Cinzel Decorative';-inkscape-font-specification:'Cinzel Decorative, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#000000;fill-opacity:1;stroke-width:0.264583">P</tspan></text>
   </g>
 </svg>

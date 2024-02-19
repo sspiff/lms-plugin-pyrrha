@@ -115,27 +115,33 @@ sub getRestStationList {
 sub restStationCallback {
   my (%response) = @_;
   my $stations = $response{'passthrough'}->{'stations'};
-  $log->debug("Retrieved " . scalar(@{$response{'result'}->{'stations'}}) . " stations");
+  my $totalStationsRetrieved = $response{'passthrough'}->{'totalStationsRetrieved'} || 0;
+  my $stationsRetrieved = scalar(@{$response{'result'}->{'stations'}});
+  $log->debug("Retrieved ${stationsRetrieved} stations");
   $log->debug("Station IDs: " . join(', ', map { $_->{'stationId'} } @{$response{'result'}->{'stations'}}));
   my $total_stations = $response{'result'}->{'totalStations'};
   $log->debug("Total stations: ${total_stations}");
   $log->debug(Dumper($response{'result'}->{'stations'}->[0]));
   push(@$stations, @{$response{'result'}->{'stations'}});
-  $log->debug("Total retrieved stations: " . scalar(@$stations));
-  if (scalar(@$stations) < $total_stations) {
+  $totalStationsRetrieved += $stationsRetrieved;
+  $log->debug("Total retrieved stations: ${totalStationsRetrieved}");
+  if ($totalStationsRetrieved < $total_stations) {
     _rest(
       'v1/station/getStations',
       {
         pageSize   => $STATIONLIST_PAGESIZE,
-        startIndex => scalar(@$stations),
+        startIndex => $totalStationsRetrieved,
       },
       \&restStationCallback,
       \&restErrorCallback,
-      $response{'passthrough'},
+      {
+        %{$response{'passthrough'}},
+        totalStationsRetrieved => $totalStationsRetrieved,
+      }
     );
   }
   else {
-    $log->debug("Retrieved all " . scalar(@$stations) . " stations");
+    $log->debug("Retrieved all ${total_stations} stations");
     $cache{'stationList'} = {
       expiresAt => time() + $STATIONLIST_LIFETIME,
       stations  => $stations,

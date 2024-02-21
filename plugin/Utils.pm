@@ -24,6 +24,7 @@ my $prefs = preferences( 'plugin.pyrrha' );
 
 
 my %cache = ();
+my $json = JSON->new->utf8;
 
 
 my $WEBSVC_LIFETIME = (60 * 60 * 4) - (60 * 2);  # 4 hrs - 2 min grace
@@ -248,7 +249,7 @@ sub _restCsrfCallback {
     my $http = Slim::Networking::SimpleAsyncHTTP->new(
       sub {
         my $response = shift;
-        my $json = JSON->new->decode($response->content);
+        my $json = $json->decode($response->content);
         $successCb->(result => $json, passthrough => $passthrough);
       },
       sub {
@@ -262,7 +263,7 @@ sub _restCsrfCallback {
       'X-CsrfToken' => $csrftoken,
       'X-AuthToken' => $websvc->{'userAuthToken'},
       'Content-Type' => 'application/json;charset=utf-8',
-      JSON->new->encode($args),
+      $json->encode($args),
     );
   };
   getWebService($withWebsvc, sub { $errorCb->(shift, $passthrough); });

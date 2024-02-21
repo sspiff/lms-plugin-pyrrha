@@ -16,7 +16,7 @@ sub page {
 }
 
 sub prefs {
-  return ($prefs, 'username', 'password', 'forceNonMaterialIcon');
+  return ($prefs, 'username', 'password', 'stationSortOrder', 'disableQuickMix', 'forceNonMaterialIcon');
 }
 
 sub handler {

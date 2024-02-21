@@ -76,3 +76,24 @@ PLUGIN_PYRRHA_FORCE_NONMATERIAL_APPICON
 
 PLUGIN_PYRRHA_DISCLAIMER
 	EN	<p>This is beta software, currently at a proof-of-concept stage.  <em>Use at your own risk.</em></p> <p>This plugin is not approved by Pyrrha's mother, and as such, its use may not be tolerated. <em>Invite the wrath of the Gods at your own risk.</em></p>
+
+PLUGIN_PYRRHA_STATION_SORT_ORDER
+	EN	Sort order of station list
+
+PLUGIN_PYRRHA_STATION_SORT_AZ
+	EN	A-Z
+
+PLUGIN_PYRRHA_STATION_SORT_CREATED
+	EN	Recently collected
+
+PLUGIN_PYRRHA_STATION_SORT_PLAYED
+	EN	Recently played
+
+PLUGIN_PYRRHA_STATION_SORT_LISTENED
+	EN	Most listened
+
+PLUGIN_PYRRHA_DISABLE_QUICKMIX
+	EN	Disable QuickMix
+
+PLUGIN_PYRRHA_DISABLE_QUICKMIX_DESC
+	EN	Prevent listing the QuickMix station

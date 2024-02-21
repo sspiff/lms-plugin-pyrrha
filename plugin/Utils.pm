@@ -3,12 +3,16 @@ package Plugins::Pyrrha::Utils;
 use strict;
 
 use Exporter 'import';
-our @EXPORT_OK = qw(getWebService getStationList getPlaylist);
+our @EXPORT_OK = qw(getWebService getStationList getPlaylist getStationArtUrl);
 
 use Slim::Utils::Prefs;
+use Slim::Networking::SimpleAsyncHTTP;
+use Slim::Networking::Async::HTTP;
+use URI;
 use JSON;
 use WebService::Pandora;
 use WebService::Pandora::Partner::AIR;
+use Data::Dumper;
 
 my $log = Slim::Utils::Log->addLogCategory({
   category     => 'plugin.pyrrha',
@@ -20,11 +24,13 @@ my $prefs = preferences( 'plugin.pyrrha' );
 
 
 my %cache = ();
+my $json = JSON->new->utf8;
 
 
 my $WEBSVC_LIFETIME = (60 * 60 * 4) - (60 * 2);  # 4 hrs - 2 min grace
 my $STATIONLIST_LIFETIME = 60 * 20;              # 20 min
-
+my $STATIONLIST_PAGESIZE = 250;                  # How many stations to retrieve at a time
+my $STATIONART_SIZE = 500;                       # Size of station art to use. 90, 130, 500, 640, 1080
 
 sub getWebService {
   my ($successCb, $errorCb) = @_;
@@ -62,10 +68,10 @@ sub getWebService {
   });
 }
 
-
 sub getStationList {
   my ($successCb, $errorCb, %args) = @_;
   my $noRefresh = $args{'noRefresh'};
+  my @stations;
 
   my $websvc = $cache{'webService'};
   my $stationList = $cache{'stationList'};
@@ -79,69 +85,114 @@ sub getStationList {
     return;
   }
 
-  my $withWebsvc = sub {
-    my ($websvc) = @_;
-    $log->info('fetching station list');
-    $websvc->getStationList(sub {
-      my (%r) = @_;
-      my ($result, $error) = @r{'result', 'error'};
-      if ($result) {
-        my $stationList = {
-          expiresAt => time() + $STATIONLIST_LIFETIME,
-          stations  => $result->{'stations'},
-        };
-        $cache{'stationList'} = $stationList;
-        $successCb->($stationList->{'stations'}, $websvc);
-      }
-      else {
-        if (ref $error eq 'HASH') {
-          if ($error->{'apiCode'} == 1001) {
-            # auth token expired, clear our cached credentials
-            $log->info('auth token expired, clearing cache');
-            %cache = ();
-          }
-          $error = $error->{'message'}
-        }
-        $log->error($error);
-        $errorCb->("Error getting station list ($error)");
-      }
+  # Skip fetching QuickMix/Shuffle station if desired
+  if ($prefs->get('disableQuickMix')) {
+    getRestStationList({
+      stations  => \@stations,
+      successCb => $successCb,
+      errorCb   => $errorCb,
+    });
+  }
+  else {
+    getRestQuickMix({
+      stations  => \@stations,
+      successCb => $successCb,
+      errorCb   => $errorCb,
+    });
+  }
+}
+
+sub getStationArtUrl {
+  my $station = shift;
+  return unless (
+    $station &&
+    ref $station eq 'HASH' &&
+    ref $station->{'art'} eq 'ARRAY'
+  );
+  for my $art (@{$station->{'art'}}) {
+    return $art->{'url'} if $art->{'size'} == $STATIONART_SIZE;
+  }
+  $log->debug("No station art matching size ${STATIONART_SIZE} found");
+  return $station->{'art'}->[0]->{'url'};
+}
+
+sub getRestStationList {
+  _rest(
+    'v1/station/getStations',
+    {
+      pageSize => $STATIONLIST_PAGESIZE,
     },
-      includeStationArtUrl => JSON::true(),
-      returnAllStations => JSON::true(),
+    \&restStationCallback,
+    \&restErrorCallback,
+    @_,
+  );
+}
+
+sub restStationCallback {
+  my (%response) = @_;
+  my $stations = $response{'passthrough'}->{'stations'};
+  my $totalStationsRetrieved = $response{'passthrough'}->{'totalStationsRetrieved'} || 0;
+  my $stationsRetrieved = scalar(@{$response{'result'}->{'stations'}});
+  $log->debug("Retrieved ${stationsRetrieved} stations");
+  $log->debug("Station IDs: " . join(', ', map { $_->{'stationId'} } @{$response{'result'}->{'stations'}}));
+  my $total_stations = $response{'result'}->{'totalStations'};
+  $log->debug("Total stations: ${total_stations}");
+  $log->debug(Dumper($response{'result'}->{'stations'}->[0]));
+  push(@$stations, @{$response{'result'}->{'stations'}});
+  $totalStationsRetrieved += $stationsRetrieved;
+  $log->debug("Total retrieved stations: ${totalStationsRetrieved}");
+  if ($totalStationsRetrieved < $total_stations) {
+    _rest(
+      'v1/station/getStations',
+      {
+        pageSize   => $STATIONLIST_PAGESIZE,
+        startIndex => $totalStationsRetrieved,
+      },
+      \&restStationCallback,
+      \&restErrorCallback,
+      {
+        %{$response{'passthrough'}},
+        totalStationsRetrieved => $totalStationsRetrieved,
+      }
     );
-  };
-
-  my $withoutWebsvc = sub {
-    $log->error(@_);
-    $errorCb->('Unable to connect/login to Pandora');
-  };
-
-  getWebService($withWebsvc, $withoutWebsvc);
+  }
+  else {
+    $log->debug("Retrieved all ${total_stations} stations");
+    $cache{'stationList'} = {
+      expiresAt => time() + $STATIONLIST_LIFETIME,
+      stations  => $stations,
+    };
+    $response{'passthrough'}->{'successCb'}->($stations);
+  }
 }
 
-
-sub getStationToken {
-  my ($stationId, $successCb, $errorCb) = @_;
-
-  my $withStationList = sub {
-    my ($stationList, $websvc) = @_;
-    my ($station) = grep { $stationId == $_->{stationId} } @$stationList;
-    if ($station) {
-      $successCb->($station->{stationToken}, $websvc);
-    }
-    else {
-      $log->error('stationId not found in station list');
-      $errorCb->('Station not found');
-    }
-  };
-
-  my $withoutStationList = sub {
-    $errorCb->(@_);
-  };
-
-  getStationList($withStationList, $withoutStationList, noRefresh => 1);
+sub getRestQuickMix {
+  _rest(
+    'v1/station/shuffle',
+    {},
+    \&restQuickMixCallback,
+    \&restErrorCallback,
+    @_,
+  );
 }
 
+sub restQuickMixCallback {
+  my (%response) = @_;
+  $log->debug("shuffle response: " . Dumper(\%response));
+  my $stations = $response{'passthrough'}->{'stations'};
+  push(@$stations, $response{'result'});
+  getRestStationList({
+    stations  => $stations,
+    successCb => $response{'passthrough'}->{'successCb'},
+    errorCb   => $response{'passthrough'}->{'errorCb'},
+  });
+}
+
+sub restErrorCallback {
+  my ($error, $passthrough) = @_;
+  $log->error($error);
+  $passthrough->{'errorCb'}->($error);
+}
 
 sub getPlaylist {
   my ($stationId, $successCb, $errorCb) = @_;
@@ -150,8 +201,8 @@ sub getPlaylist {
     $errorCb->(@_);
   };
 
-  my $withStationToken = sub {
-    my ($stationToken, $websvc) = @_;
+  my $withWebsvc = sub {
+    my ($websvc) = @_;
     $websvc->getPlaylist(sub {
       my (%r) = @_;
       my ($result, $error) = @r{'result', 'error'};
@@ -172,13 +223,65 @@ sub getPlaylist {
         $errorCb->("Error getting play list ($error)");
       }
     },
-      stationToken => $stationToken
+      stationToken => $stationId
     );
   };
 
-  getStationToken($stationId, $withStationToken, $onError);
+  getWebService($withWebsvc, $onError);
 }
 
+sub _rest {
+  my ($endpoint, $args, $successCb, $errorCb, $passthrough) = @_;
+
+  # Fetch CSRF cookie from www.pandora.com
+  my $uri = URI->new('https://www.pandora.com');
+  my $http = Slim::Networking::SimpleAsyncHTTP->new(
+    sub {
+      _restCsrfCallback->($endpoint, $args, $successCb, $errorCb, $passthrough);
+    },
+    sub {
+      my ($req, $error) = @_;
+      $log->error($error);
+      $errorCb->($error, $passthrough);
+    },
+    {
+      $args,
+    }
+  );
+  $http->head($uri);
+}
+
+sub _restCsrfCallback {
+  my ($endpoint, $args, $successCb, $errorCb, $passthrough) = @_;
+  my $csrftoken = Slim::Networking::Async::HTTP->cookie_jar->get_cookies('.pandora.com', 'csrftoken');
+  unless ($csrftoken) {
+    $errorCb->(result => undef, error => 'Failed to retrieve CSRF token from www.pandora.com');
+    return;
+  }
+  my $uri = URI->new("https://www.pandora.com/api/${endpoint}");
+  my $withWebsvc = sub {
+    my ($websvc) = @_;
+    my $http = Slim::Networking::SimpleAsyncHTTP->new(
+      sub {
+        my $response = shift;
+        my $json = $json->decode($response->content);
+        $successCb->(result => $json, passthrough => $passthrough);
+      },
+      sub {
+        my ($req, $error) = @_;
+        $log->error($error);
+        $errorCb->($error, $passthrough);
+      }
+    );
+    $http->post(
+      $uri,
+      'X-CsrfToken' => $csrftoken,
+      'X-AuthToken' => $websvc->{'userAuthToken'},
+      'Content-Type' => 'application/json;charset=utf-8',
+      $json->encode($args),
+    );
+  };
+  getWebService($withWebsvc, sub { $errorCb->(shift, $passthrough); });
+}
 
 1;
-

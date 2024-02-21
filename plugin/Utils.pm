@@ -3,7 +3,7 @@ package Plugins::Pyrrha::Utils;
 use strict;
 
 use Exporter 'import';
-our @EXPORT_OK = qw(getWebService getStationList getPlaylist);
+our @EXPORT_OK = qw(getWebService getStationList getPlaylist getStationArtUrl);
 
 use Slim::Utils::Prefs;
 use Slim::Networking::SimpleAsyncHTTP;
@@ -30,6 +30,7 @@ my $json = JSON->new->utf8;
 my $WEBSVC_LIFETIME = (60 * 60 * 4) - (60 * 2);  # 4 hrs - 2 min grace
 my $STATIONLIST_LIFETIME = 60 * 20;              # 20 min
 my $STATIONLIST_PAGESIZE = 250;                  # How many stations to retrieve at a time
+my $STATIONART_SIZE = 500;                       # Size of station art to use. 90, 130, 500, 640, 1080
 
 sub getWebService {
   my ($successCb, $errorCb) = @_;
@@ -99,6 +100,20 @@ sub getStationList {
       errorCb   => $errorCb,
     });
   }
+}
+
+sub getStationArtUrl {
+  my $station = shift;
+  return unless (
+    $station &&
+    ref $station eq 'HASH' &&
+    ref $station->{'art'} eq 'ARRAY'
+  );
+  for my $art (@{$station->{'art'}}) {
+    return $art->{'url'} if $art->{'size'} == $STATIONART_SIZE;
+  }
+  $log->debug("No station art matching size ${STATIONART_SIZE} found");
+  return $station->{'art'}->[0]->{'url'};
 }
 
 sub getRestStationList {

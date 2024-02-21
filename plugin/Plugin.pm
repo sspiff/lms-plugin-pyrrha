@@ -8,7 +8,7 @@ use base qw(Slim::Plugin::OPMLBased);
 use Digest::MD5 qw(md5_hex);
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Plugins::Pyrrha::Utils qw(getStationList);
+use Plugins::Pyrrha::Utils qw(getStationList getStationArtUrl);
 
 sub getDisplayName () {
   return 'PLUGIN_PYRRHA_MODULE_NAME';
@@ -74,7 +74,7 @@ sub handleFeed {
     unshift @sorted_stations, @quickmix;
     foreach my $station ( @sorted_stations ) {
       my $stationId = $station->{'stationId'};
-      my $artUrl = $station->{'art'}->[0]->{'url'};
+      my $artUrl = getStationArtUrl($station);
       push @$items, {
         'name'  => $station->{'name'},
         'type'  => 'audio',

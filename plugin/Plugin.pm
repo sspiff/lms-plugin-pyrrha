@@ -21,6 +21,7 @@ my $log = Slim::Utils::Log->addLogCategory({
 });
 
 my $prefs = preferences( 'plugin.pyrrha' );
+my $defaultStationArtUrl;
 
 
 sub handleFeed {
@@ -79,7 +80,7 @@ sub handleFeed {
         'name'  => $station->{'name'},
         'type'  => 'audio',
         'url'   => "pyrrha://$usernameDigest/$stationId.mp3",
-        'image' => $artUrl ? $artUrl : 'plugins/Pyrrha/images/icon_svg.png',
+        'image' => $artUrl ? $artUrl : $defaultStationArtUrl,
       };
     }
     $callback->(\%opml);
@@ -121,6 +122,8 @@ sub initPlugin {
     weight => 10,
     is_app => 1,
   );
+
+  $defaultStationArtUrl = $class->SUPER::_pluginDataFor('icon');
 }
 
 

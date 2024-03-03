@@ -49,6 +49,15 @@ License:
 > This library is free software; you can redistribute it and/or modify
 > it under the same terms as Perl itself.
 
+### ```Promise::ES6```
+
+CPAN: https://metacpan.org/pod/Promise::ES6
+
+License:
+> Copyright 2019-2021 Gasper Software Consulting.
+>
+> This library is licensed under the same terms as Perl itself.
+
 ### ```WebService::Pandora```
 
 CPAN: https://metacpan.org/pod/WebService::Pandora

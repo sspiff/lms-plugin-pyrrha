@@ -60,7 +60,7 @@ After all, the apple falls not far from the
 [tree](https://github.com/Logitech/slimserver/tree/public/8.4/Slim/Plugin/Pandora).
 
 Pyrrha contains the following 3rd-party perl modules
-(see [3RDPARTY](3RDPARTY.md)):
 ```Crypt::Blowfish_PP```, ```Crypt::ECB```, ```JSON```,
-and ```WebService::Pandora```.
+```Promise::ES6```, and ```WebService::Pandora```.
+See [3RDPARTY](3RDPARTY.md).
 

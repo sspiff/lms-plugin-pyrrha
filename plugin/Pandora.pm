@@ -1,4 +1,4 @@
-package Plugins::Pyrrha::Utils;
+package Plugins::Pyrrha::Pandora;
 
 use strict;
 

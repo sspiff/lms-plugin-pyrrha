@@ -2,7 +2,7 @@ package Plugins::Pyrrha::ProtocolHandler;
 
 use strict;
 use base qw(Slim::Player::Protocols::HTTP);
-use Plugins::Pyrrha::Utils qw(getPlaylist);
+use Plugins::Pyrrha::Pandora qw(getPlaylist);
 
 my $log = Slim::Utils::Log->addLogCategory({
   category     => 'plugin.pyrrha',

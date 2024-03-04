@@ -8,7 +8,7 @@ use base qw(Slim::Plugin::OPMLBased);
 use Digest::MD5 qw(md5_hex);
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Plugins::Pyrrha::Utils qw(getStationList getStationArtUrl);
+use Plugins::Pyrrha::Pandora qw(getStationList getStationArtUrl);
 
 sub getDisplayName () {
   return 'PLUGIN_PYRRHA_MODULE_NAME';

@@ -6,6 +6,8 @@ use warnings;
 use WebService::Pandora::Method;
 use Data::Dumper;
 
+use Promise::ES6;
+
 use constant WEBSERVICE_VERSION => '5';
 
 ### constructor ###
@@ -45,7 +47,7 @@ sub error {
 
 sub login {
 
-    my ( $self, $cb ) = @_;
+    my ( $self ) = @_;
 
     # make sure all arguments are given
     if ( !defined( $self->{'username'} ) ||
@@ -56,8 +58,7 @@ sub login {
          !defined( $self->{'host'} ) ) {
 
         $self->error( 'The username, password, deviceModel, encryption_key, decryption_key, and host must all be provided to the constructor.' );
-        $cb->(error => $self->error());
-        return;
+        return Promise::ES6->reject($self->error());
     }
 
     # create the auth.partnerLogin method
@@ -70,15 +71,11 @@ sub login {
                                                               'deviceModel' => $self->{'deviceModel'},
                                                               'version' => "5"} );
 
-    $method->execute(
-        sub {
-            my (%res) = @_;
-            if (defined $res{'error'}) {
-                $self->error( $res{'error'} )
-            }
-            $cb->(@_);
-        }
-    );
+    return $method->execute()
+      ->catch(sub{
+        $self->error(@_);
+        die @_;
+      });
 }
 
 1;

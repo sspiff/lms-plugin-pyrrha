@@ -9,6 +9,7 @@ use WebService::Pandora::Partner::iOS;
 
 use JSON;
 use Data::Dumper;
+use Promise::ES6;
 
 our $VERSION = '0.4';
 
@@ -58,46 +59,27 @@ sub error {
 
 sub login {
 
-    my ( $self, $cb ) = @_;
+    my ( $self ) = @_;
 
     # make sure both username and password were given
     if ( !defined( $self->{'username'} ) || !defined( $self->{'password'} ) ) {
         $self->error( 'Both username and password must be given in the constructor.' );
-        $cb->(error => $self->error());
-        return;
+        return Promise::ES6->reject($self->error());
     }
 
     # first, do the partner login
-    $self->{'partner'}->login(
-        sub {
-            my (%ret) = @_;
-            if (defined $ret{'error'}) {
-                $self->error($ret{'error'});
-                $cb->(@_);
-            }
-            else {
-                $self->partnerCallback($ret{'result'}, $cb);
-            }
-        }
-    );
-}
-
-sub partnerCallback {
-
-    my ( $self, $ret, $cb ) = @_;
+    $self->{'partner'}->login()->then( sub{ my ($partner) = @_;
 
     # store the important attributes we got back as we'll need them later
-    $self->{'partnerAuthToken'} = $ret->{'partnerAuthToken'};
-    $self->{'partnerId'} = $ret->{'partnerId'};
-    $self->{'syncTime'} = $ret->{'syncTime'};
+    $self->{'partnerAuthToken'} = $partner->{'partnerAuthToken'};
+    $self->{'partnerId'} = $partner->{'partnerId'};
+    $self->{'syncTime'} = $partner->{'syncTime'};
 
     # throw an error if for some reason we didn't get them
     if ( !defined( $self->{'partnerAuthToken'} ) ||
          !defined( $self->{'partnerId'} ) ||
          !defined( $self->{'syncTime'} ) ) {
-        $self->error( 'Either partnerAuthToken, partnerId, or syncTime was not returned!' );
-        $cb->(error => $self->error());
-        return;
+        die 'Either partnerAuthToken, partnerId, or syncTime was not returned!';
     }
 
     # handle special case of decrypting the sync time
@@ -105,56 +87,43 @@ sub partnerCallback {
 
     # detect error decrypting
     if ( !defined( $self->{'syncTime'} ) ) {
-        $self->error( "An error occurred decrypting the syncTime: " . $self->{'cryptor'}->error() );
-        $cb->(error => $self->error());
-        return;
+        die "An error occurred decrypting the syncTime: " . $self->{'cryptor'}->error();
     }
 
     $self->{'syncTime'} = time() - int(substr( $self->{'syncTime'}, 4 ));
 
     # now create and execute the method for the user login request
-    my $method = WebService::Pandora::Method->new( name => 'auth.userLogin',
-                                                   partnerAuthToken => $self->{'partnerAuthToken'},
-                                                   partnerId => $self->{'partnerId'},
-                                                   syncTime => $self->{'syncTime'},
-                                                   host => $self->{'partner'}{'host'},
-                                                   ssl => 1,
-                                                   encrypt => 1,
-                                                   cryptor => $self->{'cryptor'},
-                                                   timeout => $self->{'timeout'},
-                                                   params => {'loginType' => 'user',
-                                                              'username' => $self->{'username'},
-                                                              'password' => $self->{'password'},
-                                                              'partnerAuthToken' => $self->{'partnerAuthToken'}} );
-    $method->execute(
-        sub {
-            my (%ret) = @_;
-            if (defined $ret{'error'}) {
-                $self->error( $ret{'error'} );
-                $cb->(@_);
-            }
-            else {
-                $self->loginCallback($ret{'result'}, $cb);
-            }
-        }
-    );
-}
-
-sub loginCallback {
-    my ($self, $ret, $cb) = @_;
+    my $method = WebService::Pandora::Method->new(
+        name => 'auth.userLogin',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        partnerId => $self->{'partnerId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 1,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => {'loginType' => 'user',
+                   'username' => $self->{'username'},
+                   'password' => $self->{'password'},
+                   'partnerAuthToken' => $self->{'partnerAuthToken'}
+        },
+      );
+    $method->execute();
+    })->then( sub { my ($user) = @_;
 
     # store even more attributes we'll need later
-    $self->{'userId'} = $ret->{'userId'};
-    $self->{'userAuthToken'} = $ret->{'userAuthToken'};
+    $self->{'userId'} = $user->{'userId'};
+    $self->{'userAuthToken'} = $user->{'userAuthToken'};
 
     # make sure we actually got them
-    if ( !defined( $self->{'userId'} ) || !defined( $self->{'userAuthToken'} ) ) {
-        $self->error( 'Either userId or userAuthToken was not returned!' );
-        $cb->(error => $self->error());
+    if (    !defined( $self->{'userId'} )
+         || !defined( $self->{'userAuthToken'} ) ) {
+        die 'Either userId or userAuthToken was not returned!';
     }
-    else {
-        $cb->(result => 1);
-    }
+
+    return $user;
+    });
 }
 
 sub getBookmarks {
@@ -188,31 +157,25 @@ sub getBookmarks {
 
 sub getStationList {
 
-    my ( $self, $cb, %args ) = @_;
+    my ( $self, %args ) = @_;
 
     # create the user.getStationList method w/ appropriate params
-    my $method = WebService::Pandora::Method->new( name => 'user.getStationList',
-                                                   partnerAuthToken => $self->{'partnerAuthToken'},
-                                                   userAuthToken => $self->{'userAuthToken'},
-                                                   partnerId => $self->{'partnerId'},
-                                                   userId => $self->{'userId'},
-                                                   syncTime => $self->{'syncTime'},
-                                                   host => $self->{'partner'}{'host'},
-                                                   ssl => 0,
-                                                   encrypt => 1,
-                                                   cryptor => $self->{'cryptor'},
-                                                   timeout => $self->{'timeout'},
-                                                   params => \%args );
+    my $method = WebService::Pandora::Method->new(
+        name => 'user.getStationList',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        userAuthToken => $self->{'userAuthToken'},
+        partnerId => $self->{'partnerId'},
+        userId => $self->{'userId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 0,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => \%args
+      );
 
-    $method->execute(
-        sub {
-            my (%ret) = @_;
-            if (defined $ret{'error'}) {
-                $self->error( $ret{'error'} );
-            }
-            $cb->(@_);
-        }
-    );
+    return $method->execute();
 }
 
 sub getStationListChecksum {
@@ -326,7 +289,7 @@ sub search {
 
 sub getPlaylist {
 
-    my ( $self, $cb, %args ) = @_;
+    my ( $self, %args ) = @_;
 
     my $stationToken = $args{'stationToken'};
 
@@ -334,35 +297,29 @@ sub getPlaylist {
     if ( !defined( $stationToken ) ) {
 
         $self->error( 'A stationToken must be specified.' );
-        return;
+        return Promise::ES6->reject($self->error());
     }
 
     # create the station.getPlaylist method w/ appropriate params
-    my $method = WebService::Pandora::Method->new( name => 'station.getPlaylist',
-                                                   partnerAuthToken => $self->{'partnerAuthToken'},
-                                                   userAuthToken => $self->{'userAuthToken'},
-                                                   partnerId => $self->{'partnerId'},
-                                                   userId => $self->{'userId'},
-                                                   syncTime => $self->{'syncTime'},
-                                                   host => $self->{'partner'}{'host'},
-                                                   ssl => 1,
-                                                   encrypt => 1,
-                                                   cryptor => $self->{'cryptor'},
-                                                   timeout => $self->{'timeout'},
-                                                   params => {
-                                                     'stationToken' => $stationToken,
-                                                     'includeTrackLength' => JSON::true(),
-                                                   } );
-
-    $method->execute(
-        sub {
-            my (%ret) = @_;
-            if (defined $ret{'error'}) {
-                $self->error( $ret{'error'} );
-            }
-            $cb->(@_);
+    my $method = WebService::Pandora::Method->new(
+        name => 'station.getPlaylist',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        userAuthToken => $self->{'userAuthToken'},
+        partnerId => $self->{'partnerId'},
+        userId => $self->{'userId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 1,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => {
+          'stationToken' => $stationToken,
+          'includeTrackLength' => JSON::true(),
         }
-    );
+      );
+
+    return $method->execute();
 }
 
 sub explainTrack {

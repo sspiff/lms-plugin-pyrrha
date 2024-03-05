@@ -9,6 +9,9 @@ use URI;
 use JSON;
 use Data::Dumper;
 
+use Promise::ES6;
+use Plugins::Pyrrha::Utils qw(fetch);
+
 ### constructor ###
 
 sub new {
@@ -55,13 +58,12 @@ sub error {
 
 sub execute {
 
-    my ( $self, $cb ) = @_;
+    my ( $self ) = @_;
 
     # make sure both name and host were given
     if ( !defined( $self->{'name'} ) || !defined( $self->{'host'} ) ) {
         $self->error( 'Both the name and host must be provided to the constructor.' );
-        $cb->(error => $self->error());
-        return;
+        return Promise::ES6->reject($self->error());
     }
 
     # craft the json data accordingly
@@ -88,8 +90,7 @@ sub execute {
         # detect error decrypting
         if ( !defined( $json_data ) ) {
             $self->error( 'An error occurred encrypting our JSON data: ' . $self->{'cryptor'}->error() );
-            $cb->(error => $self->error());
-            return;
+            return Promise::ES6->reject($self->error());
         }
     }
 
@@ -129,35 +130,34 @@ sub execute {
     $uri->query_form( $url_params );
 
     # create and store the POST request accordingly
-    my $http = Slim::Networking::SimpleAsyncHTTP->new(
-        sub {
-            my $response = shift;
-            my $json_data = $self->{'json'}->decode( $response->content );
+    fetch($uri,
+      method => 'POST',
+      timeout => $self->{timeout},
+      body => $json_data,
+    )
 
-            # handle pandora error
-            if ( $json_data->{'stat'} ne 'ok' ) {
-                $self->error( {
-                  'apiCode'    => $json_data->{'code'},
-                  'apiMessage' => $json_data->{'message'},
-                  'message'    => "$self->{'name'} error $json_data->{'code'}: $json_data->{'message'}",
-                } );
-                $cb->(error => $self->error());
-            }
-            else {
-                my $result = defined($json_data->{'result'}) ? $json_data->{'result'} : 1;
-                $cb->(result => $result);
-            }
-        },
-        sub {
-            my ($req, $error) = @_;
-            $self->error( $error );
-            $cb->(error => $self->error());
-        },
-        {
-            timeout => $self->{timeout},
-        }
-    );
-    $http->post($uri, $json_data);
+    ->catch(sub{
+      my $e = shift;
+      $self->error($e->{'error'});
+      die $self->error();
+    })
+
+    ->then(sub{
+      my $response = shift;
+      my $json_data = $self->{'json'}->decode( $response->content );
+      if ( $json_data->{'stat'} ne 'ok' ) {
+        # handle pandora error
+        $self->error( {
+          'apiCode'    => $json_data->{'code'},
+          'apiMessage' => $json_data->{'message'},
+          'message'    => "$self->{'name'} error $json_data->{'code'}: $json_data->{'message'}",
+        } );
+        die $self->error();
+      }
+      else {
+        return $json_data->{'result'} || 1;
+      }
+    });
 }
 
 1;

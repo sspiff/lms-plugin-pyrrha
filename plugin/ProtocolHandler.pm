@@ -101,20 +101,6 @@ sub getNextTrack {
     $successCb->();
   };
 
-  my $withNewPlaylist = sub {
-    my ($playlist) = @_;
-    my %station = (
-      'stationId' => $urlStationId,
-      'playlist'  => $playlist
-    );
-    $client->master->pluginData('station', \%station);
-    $nextFromPlaylist->($playlist);
-  };
-
-  my $withoutPlaylist = sub {
-    $errorCb->('Unable to get play list');
-  };
-
   if ($station &&
       $station->{'stationId'} eq $urlStationId &&
       @{$station->{'playlist'}}[0]) {
@@ -124,7 +110,17 @@ sub getNextTrack {
   else {
     $log->info('fetching new playlist');
     $client->master->pluginData('station', 0);
-    getPlaylist($urlStationId, $withNewPlaylist, $withoutPlaylist);
+    getPlaylist($urlStationId)->then(sub {
+      my $playlist = shift;
+      my %station = (
+        'stationId' => $urlStationId,
+        'playlist'  => $playlist,
+      );
+      $client->master->pluginData('station', \%station);
+      $nextFromPlaylist->($playlist);
+    })->catch(sub {
+      $errorCb->('Unable to get play list');
+    });
   }
 }
 

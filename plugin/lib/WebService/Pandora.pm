@@ -106,7 +106,10 @@ sub login {
         params => {'loginType' => 'user',
                    'username' => $self->{'username'},
                    'password' => $self->{'password'},
-                   'partnerAuthToken' => $self->{'partnerAuthToken'}
+                   'partnerAuthToken' => $self->{'partnerAuthToken'},
+                   'includeAdAttributes' => JSON::true(),
+                   'includeAdvertiserAttributes' => JSON::true(),
+                   'xplatformAdCapable' => JSON::true(),
         },
       );
     $method->execute();
@@ -316,6 +319,8 @@ sub getPlaylist {
         params => {
           'stationToken' => $stationToken,
           'includeTrackLength' => JSON::true(),
+          'xplatformAdCapable' => JSON::true(),
+          'audioAdPodCapable' => JSON::true(),
         }
       );
 
@@ -978,6 +983,64 @@ sub canSubscribe {
     }
 
     return $ret;
+}
+
+sub getAdMetadata {
+
+    my ( $self, %args ) = @_;
+
+    my $adToken = $args{'adToken'};
+
+    # create the ad.getAdMetadata method w/ appropriate params
+    my $method = WebService::Pandora::Method->new(
+        name => 'ad.getAdMetadata',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        userAuthToken => $self->{'userAuthToken'},
+        partnerId => $self->{'partnerId'},
+        userId => $self->{'userId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 1,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => {
+          'adToken' => $adToken,
+          'returnAdTrackingTokens' => JSON::true(),
+          'supportAudioAds' => JSON::true(),
+        }
+      );
+
+    return $method->execute();
+}
+
+sub registerAd {
+
+    my ( $self, %args ) = @_;
+
+    my $stationId = $args{'stationId'};
+    my $adTrackingTokens = $args{'adTrackingTokens'};
+
+    # create the ad.getAdMetadata method w/ appropriate params
+    my $method = WebService::Pandora::Method->new(
+        name => 'ad.registerAd',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        userAuthToken => $self->{'userAuthToken'},
+        partnerId => $self->{'partnerId'},
+        userId => $self->{'userId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 1,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => {
+          'stationId' => $stationId,
+          'adTrackingTokens' => $adTrackingTokens,
+        }
+      );
+
+    return $method->execute();
 }
 
 1;

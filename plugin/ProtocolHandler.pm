@@ -2,7 +2,9 @@ package Plugins::Pyrrha::ProtocolHandler;
 
 use strict;
 use base qw(Slim::Player::Protocols::HTTP);
-use Plugins::Pyrrha::Pandora qw(getPlaylist);
+use Plugins::Pyrrha::Pandora qw(getPlaylist getAdMetadata registerAd);
+
+use Promise::ES6;
 
 my $log = Slim::Utils::Log->addLogCategory({
   category     => 'plugin.pyrrha',
@@ -48,6 +50,90 @@ sub scanUrl {
 sub isRepeatingStream { 1 }
 
 
+sub _trackOrAd {
+  my $stationId = shift;
+  my $track = shift;
+
+  # just return the track if not an ad
+  my $adToken = $track->{'adToken'};
+  return Promise::ES6->resolve($track) if ! $adToken;
+
+  # get ad metadata
+  getAdMetadata(adToken => $adToken)->then(sub {
+  my $ad = shift;
+
+  # make this ad look like a track
+  return {
+    audioUrlMap         => $ad->{'audioUrlMap'},
+    songIdentity        => $adToken,
+    artistName          => $ad->{'companyName'},
+    albumName           => 'Advertisement',
+    songName            => $ad->{'title'},
+    albumArtUrl         => $ad->{'imageUrl'},
+    '_isAd'             => 1,
+    '_stationId'        => $stationId,
+    '_adTrackingTokens' => $ad->{'adTrackingTokens'},
+  };
+
+  })->catch(sub {
+  my $error = shift;
+  $log->error('unable to get ad metadata: ' . $error);
+  die $error;
+  });
+}
+
+
+sub _getPlaylistWithAds {
+  my $stationId = shift;
+
+  # fetch a new play list
+  getPlaylist($stationId)->then(sub {
+  my $playlist = shift;
+
+  # convert any ads to "tracks"
+  my @tracks = map { _trackOrAd($stationId, $_) } @$playlist;
+
+  return Promise::ES6->all(\@tracks);
+  });
+}
+
+
+sub _getNextStationTrack {
+  my $stationId   = shift;
+  my $oldPlaylist = shift;  # previously cached playlist
+
+  # use previously cached playlist or fetch a new one
+  ($oldPlaylist && @$oldPlaylist ?
+      Promise::ES6->resolve($oldPlaylist)
+    : _getPlaylistWithAds($stationId)
+  )->catch(sub {
+    die 'Unable to get play list';
+  })->then(sub {
+  my $playlist = shift;
+
+  # get the next track
+  my $track = shift @$playlist;
+
+  # if it's an ad, register that we're going to play it
+  if ($track->{'_isAd'}) {
+    registerAd(
+        stationId => $track->{'_stationId'},
+        adTrackingTokens => $track->{'_adTrackingTokens'}
+      )->catch(sub {
+        $log->debug('registerAd failed: ' . shift);
+      });
+  }
+
+  # if it doesn't have audio, go to the next one
+  if (! $track->{'audioUrlMap'}) {
+    return _getNextStationTrack($stationId, $playlist);
+  }
+
+  return [$track, $playlist];
+  });
+}
+
+
 sub getNextTrack {
   my ($class, $song, $successCb, $errorCb) = @_;
 
@@ -84,44 +170,52 @@ sub getNextTrack {
   if ($station) {
     $log->info('found cached station data ' . ($station->{'stationId'}));
     $log->info('playlist length: ' . (scalar @{$station->{'playlist'}}));
+    if ($urlStationId ne $station->{'stationId'}) {
+      $log->info('station change ' . $urlStationId);
+    }
   }
   else {
     $log->info('no previous station data');
   }
 
-  my $nextFromPlaylist = sub {
-    my ($playlist) = @_;
-    my $track = shift @$playlist;
-    my $audio = $track->{'audioUrlMap'}->{'highQuality'};
-    $song->bitrate($audio->{'bitrate'} * 1000);
-    $song->duration($track->{'trackLength'} * 1);
-    $song->streamUrl($audio->{'audioUrl'});
-    $song->pluginData('track', $track);
-    $log->info('next in playlist: ' . ($track->{'songIdentity'}));
-    $successCb->();
-  };
+  my $oldPlaylist = $station && $urlStationId eq $station->{'stationId'}
+    ? $station->{'playlist'}
+    : [];
 
-  if ($station &&
-      $station->{'stationId'} eq $urlStationId &&
-      @{$station->{'playlist'}}[0]) {
-    $log->info('using next from cached playlist');
-    $nextFromPlaylist->($station->{'playlist'});
+  # get next track for station
+  _getNextStationTrack($urlStationId, $oldPlaylist)->then(sub {
+  my $trackAndPlaylist = shift;
+  my ($track, $newPlaylist) = @$trackAndPlaylist;
+
+  # cache new playlist
+  my %station = (
+    'stationId' => $urlStationId,
+    'playlist'  => $newPlaylist,
+  );
+  $client->master->pluginData('station', \%station);
+
+  # populate song data
+  my $audio = $track->{'audioUrlMap'}->{'highQuality'};
+
+  if ($track->{'_isAd'}) {
+    #XXX squeezelite fails to connect to aws cloudfront when
+    #    https is used, but it will work with http:
+    $audio->{'audioUrl'} =~ s/^https/http/;
   }
-  else {
-    $log->info('fetching new playlist');
-    $client->master->pluginData('station', 0);
-    getPlaylist($urlStationId)->then(sub {
-      my $playlist = shift;
-      my %station = (
-        'stationId' => $urlStationId,
-        'playlist'  => $playlist,
-      );
-      $client->master->pluginData('station', \%station);
-      $nextFromPlaylist->($playlist);
-    })->catch(sub {
-      $errorCb->('Unable to get play list');
-    });
-  }
+
+  $song->bitrate($audio->{'bitrate'} * 1000);
+  $song->duration($track->{'trackLength'} * 1) if defined $track->{'trackLength'};
+  $song->streamUrl($audio->{'audioUrl'});
+  $song->pluginData('track', $track);
+  $log->info('next in playlist: ' . ($track->{'songIdentity'}));
+
+  $successCb->();
+
+  })->catch(sub {
+
+  $errorCb->('Unable to get play list');
+
+  });
 }
 
 

@@ -150,6 +150,23 @@ sub handleDirectError {
 }
 
 
+sub canDoAction {
+  my ($class, $client, $url, $action) = @_;
+
+  # disallow rewind
+  if ($action eq 'rew') {
+    return 0;
+  }
+
+  # disallow skip for now
+  if ($action eq 'stop') {
+    return 0;
+  }
+
+  return 1;
+}
+
+
 sub trackGain {
   my ($class, $client, $url) = @_;
 

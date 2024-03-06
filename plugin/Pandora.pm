@@ -10,6 +10,7 @@ use Slim::Networking::Async::HTTP;
 use JSON;
 use WebService::Pandora;
 use WebService::Pandora::Partner::AIR;
+use WebService::Pandora::Partner::iOS;
 use Promise::ES6;
 use Plugins::Pyrrha::Utils qw(fetch);
 
@@ -81,14 +82,50 @@ sub getWebService {
     lifetime => $WEBSVC_LIFETIME,
     refresh => sub {
       $log->info('creating new websvc');
-      my $newWebsvc = WebService::Pandora->new(
-        username => $prefs->get('username'),
-        password => $prefs->get('password'),
-        partner  => WebService::Pandora::Partner::AIR->new(),
-      );
-      $newWebsvc->login()->then( sub { $newWebsvc } );
+      return _getWebService();
     }
   );
+}
+
+
+my @_partners = (
+  WebService::Pandora::Partner::AIR->new(),
+  WebService::Pandora::Partner::iOS->new(),
+);
+my %_useAltPartner = ();
+sub _getWebService {
+  my $attempts = shift || 0;
+  my $username = $prefs->get('username');
+  my $password = $prefs->get('password');
+  my $partner  = $_useAltPartner{$username} || 0;
+
+  my $websvc = WebService::Pandora->new(
+    username => $username,
+    password => $password,
+    partner  => $_partners[$partner],
+  );
+  $websvc->login()->then(sub {
+  my $user = shift;
+
+  my $idealPartner = $user->{'isSubscriber'} ? 0 : 1;
+
+  # check to see if we're using the best partner
+  if (   $partner != $idealPartner
+      && $attempts < 1) {
+    $log->info('switching to alt partner');
+    $_useAltPartner{$username} = $idealPartner;
+    return _getWebService(1);
+  }
+
+  return $websvc;
+
+  })->catch(sub {
+  my $error = shift;
+
+  $error = $error->{'message'} if ref $error eq 'HASH';
+  die $error
+
+  });
 }
 
 

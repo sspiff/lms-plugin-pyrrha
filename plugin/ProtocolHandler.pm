@@ -203,6 +203,7 @@ sub getNextTrack {
     $audio->{'audioUrl'} =~ s/^https/http/;
   }
 
+  $track->{'_audio'} = $audio;
   $song->bitrate($audio->{'bitrate'} * 1000);
   $song->duration($track->{'trackLength'} * 1) if defined $track->{'trackLength'};
   $song->streamUrl($audio->{'audioUrl'});
@@ -294,6 +295,16 @@ sub getMetadataFor {
   else {
     return {};
   }
+}
+
+
+sub formatOverride {
+  my ($class, $song) = @_;
+  my $track = $song->pluginData('track');
+  my $audio = $track->{'_audio'};
+  my $encoding = $audio->{'encoding'};
+  return 'mp4' if $encoding eq 'aacplus';
+  return 'mp3';
 }
 
 

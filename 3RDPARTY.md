@@ -58,6 +58,10 @@ License:
 >
 > This library is licensed under the same terms as Perl itself.
 
+The source included with Pyrrha has an added module to provide a
+```SlimServer``` event interface, allowing ```Promises::ES6``` to hook into
+LMS's event loop.
+
 ### ```WebService::Pandora```
 
 CPAN: https://metacpan.org/pod/WebService::Pandora

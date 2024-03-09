@@ -13,7 +13,6 @@ not be tolerated.  _Invite the wrath of the Gods at your own risk._
 ## Limitations
 
 - Fetches your station list and plays your stations
-- But requires an annual tribute to Pyrrha's mother
 - Does not support account management
 - Does not support station curation
 - Does not allow skips
@@ -22,18 +21,15 @@ Pyrrha has been tested with LMS 8.3.1 running in a docker container with
 playback directed at the Local Player plugin, and with LMS 8.3.0 and
 squeezelite running under piCorePlayer on a pair of Raspberry Pis.
 
-## Installation
+## Usage
 
-1. In LMS, navigate to the plugin settings page.  Near the bottom, find the
-   **Additional Repositories** section.  Add this URL as an additional
-   third-party extension repository:
-   https://github.com/sspiff/lms-plugin-pyrrha/releases/download/repo-stable/repo.xml
-2. After some time (or perhaps an LMS restart), refresh that same plugin
-   settings page.  Near the bottom, you should now have a Pyrrha section.
-   Check the box to enable the Pyrrha plugin, and restart LMS.
-3. With LMS restarted, navigate to Pyrrha's settings page, and enter your
+Pyrrha is now included in LMS's 3rd-party repositories.  To get started:
+
+1. In LMS, navigate to the plugin settings page.  Find Pyrrha, check the
+   box to enable it, and restart LMS.
+2. With LMS restarted, navigate to Pyrrha's settings page, and enter your
    username and password.
-4. You can find Pyrrha on the LMS home page under **My Apps**.
+3. You can find Pyrrha on the LMS home page under **My Apps**.
 
 ## Development
 

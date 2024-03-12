@@ -35,8 +35,6 @@ sub new {
     bitrate => $song->bitrate() || 128_000,
   } ) || return;
 
-  ${*$sock}{contentType} = 'audio/mpeg';
-
   return $sock;
 }
 
@@ -210,7 +208,18 @@ sub getNextTrack {
   $song->pluginData('track', $track);
   $log->info('next in playlist: ' . ($track->{'songIdentity'}));
 
-  $successCb->();
+  my $format = _formatForEncoding($audio->{'encoding'});
+  Slim::Utils::Scanner::Remote::parseRemoteHeader(
+    $song->track, $audio->{'audioUrl'}, $format,
+    sub {
+      $successCb->();
+    },
+    sub {
+      my ($self, $error) = @_;
+      $log->warn( "could not find $format header $error" );
+      $successCb->();
+    }
+  );
 
   })->catch(sub {
 
@@ -303,6 +312,12 @@ sub formatOverride {
   my $track = $song->pluginData('track');
   my $audio = $track->{'_audio'};
   my $encoding = $audio->{'encoding'};
+  return _formatForEncoding($encoding);
+}
+
+
+sub _formatForEncoding {
+  my $encoding = shift;
   return 'mp4' if $encoding eq 'aacplus';
   return 'mp3';
 }

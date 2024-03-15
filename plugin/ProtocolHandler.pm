@@ -1,7 +1,7 @@
 package Plugins::Pyrrha::ProtocolHandler;
 
 use strict;
-use base qw(Slim::Player::Protocols::HTTP);
+use base qw(Slim::Player::Protocols::HTTPS);
 use Plugins::Pyrrha::Pandora qw(getPlaylist getAdMetadata registerAd);
 
 use Promise::ES6;
@@ -194,13 +194,6 @@ sub getNextTrack {
 
   # populate song data
   my $audio = $track->{'audioUrlMap'}->{'highQuality'};
-
-  if ($track->{'_isAd'}) {
-    #XXX squeezelite fails to connect to aws cloudfront when
-    #    https is used, but it will work with http:
-    $audio->{'audioUrl'} =~ s/^https/http/;
-  }
-
   $track->{'_audio'} = $audio;
   $song->bitrate($audio->{'bitrate'} * 1000);
   $song->duration($track->{'trackLength'} * 1) if defined $track->{'trackLength'};

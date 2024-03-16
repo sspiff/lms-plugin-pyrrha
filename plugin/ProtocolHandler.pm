@@ -156,6 +156,7 @@ sub getNextTrack {
     # idle too long?
     if (time() - $lastActivity >= $MAX_IDLE_TIME) {
       $log->info('idle time reached, stopping playback');
+      #XXX how is this used?
       $client->playingSong()->pluginData({
         songName => $client->string('PLUGIN_PYRRHA_IDLE_STOPPING'),
       });
@@ -195,16 +196,21 @@ sub getNextTrack {
   # populate song data
   my $audio = $track->{'audioUrlMap'}->{'highQuality'};
   $track->{'_audio'} = $audio;
-  $song->bitrate($audio->{'bitrate'} * 1000);
-  $song->duration($track->{'trackLength'} * 1) if defined $track->{'trackLength'};
   $song->streamUrl($audio->{'audioUrl'});
-  $song->pluginData('track', $track);
+  _trackMetadataForStreamUrl($song->streamUrl(), $track);
   $log->info('next in playlist: ' . ($track->{'songIdentity'}));
 
   my $format = _formatForEncoding($audio->{'encoding'});
   Slim::Utils::Scanner::Remote::parseRemoteHeader(
     $song->track, $audio->{'audioUrl'}, $format,
     sub {
+      # update metadata with parse results
+      $song->bitrate($song->track->bitrate);
+      $song->duration($song->track->secs);
+      $track->{'_bitrateDescription'} =
+        sprintf("%.0f" . Slim::Utils::Strings::string('KBPS'),
+          $song->track->bitrate/1000);
+      $track->{'_duration'} = $song->track->secs;
       $successCb->();
     },
     sub {
@@ -267,8 +273,8 @@ sub canDoAction {
 sub trackGain {
   my ($class, $client, $url) = @_;
 
-  my $track = $client->streamingSong()->pluginData('track');
-  my $gain = $track->{'trackGain'} || 0;
+  my $meta = _trackMetadataForStreamUrl($client->playingSong()->streamUrl());
+  my $gain = $meta->{'trackGain'} || 0;
 
   return $gain * 1;
 }
@@ -280,15 +286,16 @@ sub getMetadataFor {
   my $song = $forceCurrent ? $client->streamingSong() : $client->playingSong();
   return {} unless $song;
 
-  my $track = $song->pluginData('track');
-  if ($track && %$track) {
+  my $meta = _trackMetadataForStreamUrl($song->streamUrl());
+  if ($meta && %$meta) {
     return {
-      artist  => $track->{artistName},
-      album   => $track->{albumName},
-      title   => $track->{songName},
-      cover   => $track->{albumArtUrl},
-      bitrate => $song->bitrate ? ($song->bitrate/1000) . 'k' : '',
-      buttons => {
+      artist   => $meta->{artistName},
+      album    => $meta->{albumName},
+      title    => $meta->{songName},
+      cover    => $meta->{albumArtUrl},
+      duration => $meta->{'_duration'},
+      bitrate  => $meta->{'_bitrateDescription'},
+      buttons  => {
         rew => 0,
         fwd => 0,
       },
@@ -302,8 +309,8 @@ sub getMetadataFor {
 
 sub formatOverride {
   my ($class, $song) = @_;
-  my $track = $song->pluginData('track');
-  my $audio = $track->{'_audio'};
+  my $meta = _trackMetadataForStreamUrl($song->streamUrl());
+  my $audio = $meta->{'_audio'};
   my $encoding = $audio->{'encoding'};
   return _formatForEncoding($encoding);
 }
@@ -313,6 +320,44 @@ sub _formatForEncoding {
   my $encoding = shift;
   return 'mp4' if $encoding eq 'aacplus';
   return 'mp3';
+}
+
+
+my @_trackMetadataCache = ();
+sub _trackMetadataForStreamUrl {
+  my $keyUrl = shift;
+  my $newValue = shift;
+
+  # find an existing entry
+  if (! $newValue) {
+    foreach (@_trackMetadataCache) {
+      my ($u, $m, $e) = @$_;       # (url, metadata, expiration)
+      return $m if $u eq $keyUrl;
+    }
+    return undef;
+  }
+
+  # add a new entry
+  #
+  # entries are tuples: (key, data, expiration)
+  #
+  # we put new entries at the beginning of the list so our search
+  # above is brief, and we'll expire entries after 1 hour, which
+  # is about how long the audioUrls are good for
+  #
+  unshift @_trackMetadataCache, [$keyUrl, $newValue, time() + (60 * 60)];
+
+  # prune expired entries
+  my $now = time();
+  for (0 .. $#_trackMetadataCache) {
+    my ($u, $m, $e) = @{$_trackMetadataCache[$_]};
+    next if $e > $now;
+    # this and all following entries are expired
+    splice @_trackMetadataCache, $_;
+    last;
+  }
+
+  return;
 }
 
 

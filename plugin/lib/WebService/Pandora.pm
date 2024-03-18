@@ -189,28 +189,22 @@ sub getStationListChecksum {
     my ( $self ) = @_;
 
     # create the user.getStationListChecksum method w/ appropriate params
-    my $method = WebService::Pandora::Method->new( name => 'user.getStationListChecksum',
-                                                   partnerAuthToken => $self->{'partnerAuthToken'},
-                                                   userAuthToken => $self->{'userAuthToken'},
-                                                   partnerId => $self->{'partnerId'},
-                                                   userId => $self->{'userId'},
-                                                   syncTime => $self->{'syncTime'},
-                                                   host => $self->{'partner'}{'host'},
-                                                   ssl => 0,
-                                                   encrypt => 1,
-                                                   cryptor => $self->{'cryptor'},
-                                                   timeout => $self->{'timeout'},
-                                                   params => {} );
+    my $method = WebService::Pandora::Method->new(
+        name => 'user.getStationListChecksum',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        userAuthToken => $self->{'userAuthToken'},
+        partnerId => $self->{'partnerId'},
+        userId => $self->{'userId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 0,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => {}
+      );
 
-    my $ret = $method->execute();
-
-    if ( !$ret ) {
-
-        $self->error( $method->error() );
-        return;
-    }
-
-    return $ret;
+    return $method->execute();
 }
 
 sub getStation {

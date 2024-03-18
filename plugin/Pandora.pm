@@ -163,9 +163,14 @@ sub _getStationList {
   return Promise::ES6->all([
 
     # get the quickmix/shuffle station, if configured
-    $prefs->get('disableQuickMix')
-      ? Promise::ES6->resolve(0)
-      : _invokeRestApi('v1/station/shuffle'),
+    ($prefs->get('disableQuickMix')
+       ? Promise::ES6->resolve(0)
+       : _invokeRestApi('v1/station/shuffle')
+    )->catch(sub {
+      # api call will fail if the station list is empty; just swallow it
+      $log->debug('unable to get shuffle station');
+      return 0;
+    }),
 
     # fetch the user's stations
     _getStationListPages(),

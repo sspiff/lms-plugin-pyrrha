@@ -67,23 +67,25 @@ sub handleFeed {
     die "Invalid stationSortOrder ${stationSortKey}";
   }
   $log->debug("Sorting stations by $stationSortKey");
-  my @quickmix;
-  my @sorted_stations = @$stations;
-  # Temporarily exclude quickmix station from sort to keep at top
-  unless ($prefs->get('disableQuickMix')) {
-    push(@quickmix, shift @sorted_stations);
-  }
-  @sorted_stations = sort $stationSortMethod @sorted_stations;
-  unshift @sorted_stations, @quickmix;
-  foreach my $station ( @sorted_stations ) {
-    my $stationId = $station->{'stationId'};
-    my $artUrl = getStationArtUrl($station);
-    push @$items, {
-      'name'  => $station->{'name'},
-      'type'  => 'audio',
-      'url'   => "pyrrha://$usernameDigest/$stationId.mp3",
-      'image' => $artUrl ? $artUrl : $defaultStationArtUrl,
-    };
+  if (scalar @$stations) {
+    my @quickmix;
+    my @sorted_stations = @$stations;
+    # Temporarily exclude quickmix station from sort to keep at top
+    if ($stations->[0]->{'isShuffle'}) {
+      push(@quickmix, shift @sorted_stations);
+    }
+    @sorted_stations = sort $stationSortMethod @sorted_stations;
+    unshift @sorted_stations, @quickmix;
+    foreach my $station ( @sorted_stations ) {
+      my $stationId = $station->{'stationId'};
+      my $artUrl = getStationArtUrl($station);
+      push @$items, {
+        'name'  => $station->{'name'},
+        'type'  => 'audio',
+        'url'   => "pyrrha://$usernameDigest/$stationId.mp3",
+        'image' => $artUrl ? $artUrl : $defaultStationArtUrl,
+      };
+    }
   }
 
   $callback->(\%opml);

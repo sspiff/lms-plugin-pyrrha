@@ -28,7 +28,6 @@ my $json = JSON->new->utf8;
 
 
 my $WEBSVC_LIFETIME = (60 * 60 * 4) - (60 * 2);  # 4 hrs - 2 min grace
-my $STATIONLIST_LIFETIME = 60 * 20;              # 20 min
 my $STATIONLIST_PAGESIZE = 250;                  # How many stations to retrieve at a time
 my $STATIONART_SIZE = 500;                       # Size of station art to use. 90, 130, 500, 640, 1080
 
@@ -55,7 +54,7 @@ sub _getCachedPerishable {
   return _getCachedPerishable(%args) if $cacheItem != $cache{$key};
 
   # otherwise create a new one
-  my $newPerishable = $refresh->()->then(sub {
+  my $newPerishable = $refresh->($oldPerishable->{'object'})->then(sub {
       return {
         'expiresAt' => time() + $lifetime,
         'object' => shift,
@@ -132,18 +131,36 @@ sub _getWebService {
 sub getStationList {
   _getCachedPerishable(
     key => 'stationList',
-    lifetime => $STATIONLIST_LIFETIME,
+    lifetime => 10,  # rate limit a litte bit
     refresh => sub {
       $log->info('fetching station list');
-      return _getStationList();
+      return _getStationList(@_);
     }
-  );
+  )->then(sub {
+    my $stationList = shift;
+    return $stationList->{'stations'};
+  });
 }
 
 
 sub _getStationList {
+  # the perishable cache will provide the expired data, if any.
+  my $previous = shift;
 
-  Promise::ES6->all([
+  # get a websvc
+  getWebService()->then(sub{
+  my $websvc = shift;
+
+  # now get the station list checksum
+  $websvc->getStationListChecksum();
+  })->then(sub {
+  my $checksum = shift->{'checksum'};
+
+  # use the previous list if the checksum has not changed
+  return $previous if $previous && $checksum eq $previous->{'checksum'};
+
+  # otherwise, fetch a new list
+  return Promise::ES6->all([
 
     # get the quickmix/shuffle station, if configured
     $prefs->get('disableQuickMix')
@@ -160,7 +177,11 @@ sub _getStationList {
   # add quickmix to the user's station list
   unshift @$stations, $quickmix if $quickmix;
 
-  return $stations;
+  return {
+      stations => $stations,
+      checksum => $checksum,
+    };
+  });
   });
 }
 

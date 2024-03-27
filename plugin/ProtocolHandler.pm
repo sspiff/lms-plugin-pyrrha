@@ -307,6 +307,7 @@ sub trackGain {
 
 sub getMetadataFor {
   my ($class, $client, $url, $forceCurrent) = @_;
+  return {} unless $client;
 
   my $song = $forceCurrent ? $client->streamingSong() : $client->playingSong();
   return {} unless $song;

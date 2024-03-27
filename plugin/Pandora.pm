@@ -7,12 +7,14 @@ our @EXPORT_OK = qw(getWebService getStationList getPlaylist getStationArtUrl ge
 
 use Slim::Utils::Prefs;
 use Slim::Networking::Async::HTTP;
+use Digest::MD5 qw(md5_hex);
 use JSON;
 use WebService::Pandora;
 use WebService::Pandora::Partner::AIR;
 use WebService::Pandora::Partner::iOS;
 use Promise::ES6;
 use Plugins::Pyrrha::Utils qw(fetch);
+use Plugins::Pyrrha::Skips;
 
 my $log = Slim::Utils::Log->addLogCategory({
   category     => 'plugin.pyrrha',
@@ -115,6 +117,28 @@ sub _getWebService {
     $_useAltPartner{$username} = $idealPartner;
     return _getWebService(1);
   }
+
+  # save some user info
+  $websvc->{'_userConfig'} = {
+      'hasAudioAds'            => $user->{'hasAudioAds'},
+      'maxStationsAllowed'     => $user->{'maxStationsAllowed'},
+      'isSubscriber'           => $user->{'isSubscriber'},
+      'stationHourlySkipLimit' => $user->{'stationHourlySkipLimit'},
+      'dailySkipLimit'         => $user->{'dailySkipLimit'},
+    };
+
+  # set this user's skip allowance
+  $log->info(
+        'skip allowance: '
+      . $websvc->{'_userConfig'}->{'stationHourlySkipLimit'}
+      . ' / '
+      . $websvc->{'_userConfig'}->{'dailySkipLimit'}
+    );
+  Plugins::Pyrrha::Skips::setSkipAllowance(
+      md5_hex($username),
+      $websvc->{'_userConfig'}->{'stationHourlySkipLimit'},
+      $websvc->{'_userConfig'}->{'dailySkipLimit'},
+    );
 
   return $websvc;
 

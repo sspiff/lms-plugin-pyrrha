@@ -3,6 +3,7 @@ package Plugins::Pyrrha::ProtocolHandler;
 use strict;
 use base qw(Slim::Player::Protocols::HTTPS);
 use Plugins::Pyrrha::Pandora qw(getPlaylist getAdMetadata registerAd);
+use Plugins::Pyrrha::Skips;
 
 use Promise::ES6;
 
@@ -177,6 +178,14 @@ sub getNextTrack {
     $log->info('no previous station data');
   }
 
+  # check for skipping
+  if (   $station
+      && $urlStationId eq $station->{'stationId'}
+      && time() < $station->{'exSkipTime'}) {
+    $log->info('skip detected');
+    Plugins::Pyrrha::Skips::recordSkip($urlUsername, $urlStationId);
+  }
+
   my $oldPlaylist = $station && $urlStationId eq $station->{'stationId'}
     ? $station->{'playlist'}
     : [];
@@ -194,6 +203,9 @@ sub getNextTrack {
   $client->master->pluginData('station', \%station);
 
   # populate song data
+  $track->{'_canSkip'} =
+       !$track->{'_isAd'}
+    && Plugins::Pyrrha::Skips::canSkip($urlUsername, $urlStationId);
   my $audio = $track->{'audioUrlMap'}->{'highQuality'};
   $track->{'_audio'} = $audio;
   $song->streamUrl($audio->{'audioUrl'});
@@ -211,6 +223,10 @@ sub getNextTrack {
         sprintf("%.0f" . Slim::Utils::Strings::string('KBPS'),
           $song->track->bitrate/1000);
       $track->{'_duration'} = $song->track->secs;
+      # a track change before this time will be considered a skip.
+      # we include some margin because LMS seems to often request
+      # the next track ~10s before the end of the current one.
+      $station{'exSkipTime'} = time() + $song->track->secs - 15;
       $successCb->();
     },
     sub {
@@ -253,6 +269,15 @@ sub handleDirectError {
 }
 
 
+sub _canSkip {
+  my $client = shift;
+
+  my $meta = _trackMetadataForStreamUrl($client->playingSong()->streamUrl());
+
+  return $meta->{'_canSkip'};
+}
+
+
 sub canDoAction {
   my ($class, $client, $url, $action) = @_;
 
@@ -261,8 +286,8 @@ sub canDoAction {
     return 0;
   }
 
-  # disallow skip for now
-  if ($action eq 'stop') {
+  # disallow skip?
+  if ($action eq 'stop' && !_canSkip($client)) {
     return 0;
   }
 
@@ -297,7 +322,7 @@ sub getMetadataFor {
       bitrate  => $meta->{'_bitrateDescription'},
       buttons  => {
         rew => 0,
-        fwd => 0,
+        fwd => _canSkip($client) ? 1 : 0,
       },
     };
   }

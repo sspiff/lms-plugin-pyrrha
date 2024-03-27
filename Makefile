@@ -1,7 +1,20 @@
 
 
 PLUGIN_NAME     := $(shell sed -n 's,.*<plugin.*name="\([^"]*\)".*,\1,p' misc/repo.xml)
-PLUGIN_VERSION  := $(shell git describe)
+
+# We use a git tag to define the version of the plugin we are building.
+# Usually this is of the form x.y.z, but if we're building for dev testing
+# and we have some commits after the most recent x.y.z tag, then git describe
+# will append additional information, e.g. "0.4.2-4-g5a21db7".
+# However, the LMS plugin version comparator doesn't grok the "-4-g5a21db7"
+# the way we want it to and it sees this dev build as less than the base
+# 0.4.2 version.
+# So, we transform it to something like "0.4.2+4g5a21db7", which seems to
+# cause LMS to see this build as newer than 0.4.2.
+# This is definitely an abuse of the current implementation of the version
+# comparator, but we only depend on it for dev testing builds.
+PLUGIN_VERSION  := $(shell git describe | sed -E 's/^([0-9]+\.[0-9]+\.[0-9]+)-([0-9]+)-(g[0-9a-f]+)$$/\1+\2\3/')
+
 GIT_COMMIT_DATE := $(shell env TZ= date -r `git log -1 --format="%at"` '+%Y-%m-%dT%H:%M:%S')
 PLUGIN_ZIP       = lms-plugin-$(PLUGIN_NAME)-$(PLUGIN_VERSION).zip
 PLUGIN_ZIPURL    = https://github.com/sspiff/lms-plugin-pyrrha/releases/download/$(PLUGIN_VERSION)/$(PLUGIN_ZIP)

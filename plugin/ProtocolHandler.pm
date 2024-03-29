@@ -208,6 +208,11 @@ sub getNextTrack {
     && Plugins::Pyrrha::Skips::canSkip($urlUsername, $urlStationId);
   my $audio = $track->{'audioUrlMap'}->{'highQuality'};
   $track->{'_audio'} = $audio;
+  if ($track->{'_isAd'}) {
+    #XXX squeezelite fails to connect to aws cloudfront when
+    #    https is used, but it will work with http:
+    $audio->{'audioUrl'} =~ s/^https/http/;
+  }
   $song->streamUrl($audio->{'audioUrl'});
   _trackMetadataForStreamUrl($song->streamUrl(), $track);
   $log->info('next in playlist: ' . ($track->{'songIdentity'}));

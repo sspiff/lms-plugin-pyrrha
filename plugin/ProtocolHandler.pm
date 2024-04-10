@@ -303,10 +303,12 @@ sub canDoAction {
 sub trackGain {
   my ($class, $client, $url) = @_;
 
-  my $meta = _trackMetadataForStreamUrl($client->playingSong()->streamUrl());
-  my $gain = $meta->{'trackGain'} || 0;
+  # return the gain for the "streaming" song, which is the next song that
+  # will start playing:
+  my $meta = _trackMetadataForStreamUrl($client->streamingSong()->streamUrl());
+  my $gain = ($meta->{'trackGain'} || 0) + 0;
 
-  return $gain * 1;
+  return $gain;
 }
 
 

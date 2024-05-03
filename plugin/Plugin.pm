@@ -122,9 +122,9 @@ sub initPlugin {
   $class->SUPER::initPlugin(
     feed   => \&handleFeed,
     tag    => 'pyrrha',
-    menu   => 'music_services',
+    menu   => 'radios',
     weight => 10,
-    is_app => 1,
+    is_app => $prefs->get('showInRadioMenu') ? 0 : 1,
   );
 
   $defaultStationArtUrl = $class->SUPER::_pluginDataFor('icon');

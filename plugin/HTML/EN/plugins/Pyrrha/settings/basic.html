@@ -40,4 +40,13 @@
 		<label for="forceNonMaterialIcon">[% "PLUGIN_PYRRHA_FORCE_NONMATERIAL_APPICON" | string %]</label>
 	[% END %]
 
+	[% WRAPPER setting title="PLUGIN_PYRRHA_MENULOCATION" desc="PLUGIN_PYRRHA_MENULOCATION_DESC" %]
+		<div>
+			<select class="stdedit" name="pref_showInRadioMenu" id="showInRadioMenu">
+				<option value="0">[% "PLUGIN_MY_APPS_MODULE_NAME" | string %]</option>
+				<option value="1" [% IF prefs.pref_showInRadioMenu; "selected"; END %]>[% "RADIO" | string %]</option>
+			</select>
+		</div>
+	[% END %]
+
 [% PROCESS settings/footer.html %]

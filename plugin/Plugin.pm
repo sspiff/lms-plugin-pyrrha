@@ -136,7 +136,12 @@ sub _pluginDataFor {
 
   my $data = $class->SUPER::_pluginDataFor($key);
 
-  if ($key eq 'icon' && $prefs->get('forceNonMaterialIcon')) {
+  # material doesn't seem to like our png-only icon in the
+  # radio menu
+  if (
+         $key eq 'icon'
+      && $prefs->get('forceNonMaterialIcon')
+      && !$prefs->get('showInRadioMenu')) {
     $data =~ s/_svg\.png$/.png/;
   }
 

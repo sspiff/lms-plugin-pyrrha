@@ -4,9 +4,6 @@ Daughter of Pandora, Survivor of the Flood, Logitech Media Server plugin.
 
 ## Disclaimer
 
-This is beta software, currently at a proof-of-concept stage.
-_Use at your own risk._
-
 This plugin is not approved by Pyrrha's mother, and as such, its use may
 not be tolerated.  _Invite the wrath of the Gods at your own risk._
 
@@ -15,10 +12,9 @@ not be tolerated.  _Invite the wrath of the Gods at your own risk._
 - Fetches your station list and plays your stations
 - Does not support account management
 - Does not support station curation
-- Does not allow skips
 
-Pyrrha has been tested with LMS 8.3.1 running in a docker container with
-playback directed at the Local Player plugin, and with LMS 8.3.0 and
+Pyrrha has been tested with LMS 8.4.1 running in a docker container with
+playback directed at the Local Player plugin, and with LMS 8.5.1 and
 squeezelite running under piCorePlayer on a pair of Raspberry Pis.
 
 ## Usage

@@ -77,8 +77,8 @@ PLUGIN_PYRRHA_FORCE_NONMATERIAL_APPICON
 	FR	Utiliser l'icône "non Material" de l'application.
 
 PLUGIN_PYRRHA_DISCLAIMER
-	EN	<p>This is beta software, currently at a proof-of-concept stage.  <em>Use at your own risk.</em></p> <p>This plugin is not approved by Pyrrha's mother, and as such, its use may not be tolerated. <em>Invite the wrath of the Gods at your own risk.</em></p>
-	FR	<p>Il s'agit d'une version bêta, actuellement au stade de prototype.  <em>Utilisez la à vos propres risques.</em></p> <p>Ce plugin n'est pas approuvé par la mère de Pyrrha et, en tant que tel, son utilisation peut ne pas être tolérée. <em>Invoquez la colère des dieux à vos propres risques.</em></p>
+	EN	<p>This plugin is not approved by Pyrrha's mother, and as such, its use may not be tolerated. <em>Invite the wrath of the Gods at your own risk.</em></p>
+	FR	<p>Ce plugin n'est pas approuvé par la mère de Pyrrha et, en tant que tel, son utilisation peut ne pas être tolérée. <em>Invoquez la colère des dieux à vos propres risques.</em></p>
 
 PLUGIN_PYRRHA_STATION_SORT_ORDER
 	EN	Sort order of station list

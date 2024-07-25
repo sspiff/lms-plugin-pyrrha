@@ -90,7 +90,13 @@ sub login {
         die "An error occurred decrypting the syncTime: " . $self->{'cryptor'}->error();
     }
 
-    $self->{'syncTime'} = time() - int(substr( $self->{'syncTime'}, 4 ));
+    # calculate the delta between the service time and our system time.
+    # later, we'll add this delta to our current time for each request
+    # that we send.
+    #
+    # note that our delta calculation differs from that suggested by the
+    # unofficial api docs (which has the operands swapped).
+    $self->{'syncTime'} = int(substr( $self->{'syncTime'}, 4 )) - time();
 
     # now create and execute the method for the user login request
     my $method = WebService::Pandora::Method->new(

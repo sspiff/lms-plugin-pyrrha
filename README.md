@@ -1,6 +1,6 @@
 # Pyrrha: Daughter of Pandora
 
-Daughter of Pandora, Survivor of the Flood, Logitech Media Server plugin.
+Daughter of Pandora, Survivor of the Flood, Lyrion Music Server plugin.
 
 ## Disclaimer
 
@@ -47,9 +47,9 @@ Thank you to the [forum](https://forums.slimdevices.com/) users for their
 encouragement and support.
 
 Pyrrha was heavily influenced by the standard plugins in the
-[Logitech Media Server](https://github.com/Logitech/slimserver).
+[Lyrion Music Server](https://github.com/LMS-Community/slimserver).
 After all, the apple falls not far from the
-[tree](https://github.com/Logitech/slimserver/tree/public/8.4/Slim/Plugin/Pandora).
+[tree](https://github.com/LMS-Community/slimserver/tree/public/8.4/Slim/Plugin/Pandora).
 
 Pyrrha contains the following 3rd-party perl modules
 ```Crypt::Blowfish_PP```, ```Crypt::ECB```, ```JSON```,

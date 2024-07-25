@@ -49,6 +49,9 @@ sub scanUrl {
 sub isRepeatingStream { 1 }
 
 
+sub canSeek { 0 }
+
+
 sub _trackOrAd {
   my $stationId = shift;
   my $track = shift;

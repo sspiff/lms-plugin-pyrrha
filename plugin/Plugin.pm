@@ -25,13 +25,17 @@ my $defaultStationArtUrl;
 
 
 sub handleFeed {
-  my ($client, $callback) = @_;
+  my ($client, $callback, $args) = @_;
+  my $query = $args->{'params'}->{'menu'};
 
   my $items = [];
   my %opml = (
     'type'  => 'opml',
     'title' => 'Pyrrha',   #XXX
     'items' => $items,
+    # we cache ourselves, tell lms not to:
+    'nocache' => 1,
+    'cachetime' => 0,
   );
 
   my $username = $prefs->get('username');
@@ -76,14 +80,32 @@ sub handleFeed {
     }
     @sorted_stations = sort $stationSortMethod @sorted_stations;
     unshift @sorted_stations, @quickmix;
+    my $queryUrl = $args->{'params'}->{'url'};
     foreach my $station ( @sorted_stations ) {
       my $stationId = $station->{'stationId'};
+      my $playUrl = "pyrrha://$usernameDigest/$stationId.mp3";
       my $artUrl = getStationArtUrl($station);
+      # if the feed request included a url, only return that item
+      if ($queryUrl && $playUrl ne $queryUrl) { next; }
       push @$items, {
         'name'  => $station->{'name'},
         'type'  => 'audio',
-        'url'   => "pyrrha://$usernameDigest/$stationId.mp3",
+        'url'   => $playUrl,
         'image' => $artUrl ? $artUrl : $defaultStationArtUrl,
+        'itemActions' => {
+          # we define our own play action so that we can embed the station
+          # url into the request parameters.  this allows us to respond with
+          # the exact station the user selected even if the station list
+          # has changed.
+          'play' => {
+            'command' => [$query, 'playlist', 'play'],
+            'fixedParams' => {
+              'url' => $playUrl,
+              'isContextMenu' => 1,
+              'menu' => $query,
+            },
+          },
+        },
       };
     }
   }

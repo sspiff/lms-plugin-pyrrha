@@ -445,45 +445,33 @@ sub addSongBookmark {
 }
 
 sub addFeedback {
-
     my ( $self, %args ) = @_;
 
-    my $trackToken = $args{'trackToken'};
-    my $isPositive = $args{'isPositive'};
-
-    # make sure both the trackToken and isPositive arguments are provided
-    if ( !defined( $trackToken ) || !defined( $isPositive ) ) {
-
-        $self->error( 'Both trackToken and isPositive must be specified.' );
-        return;
-    }
-
-    $isPositive = ( $isPositive ) ? JSON::true() : JSON::false();
+    my $stationToken = $args{'stationToken'};
+    my $trackToken   = $args{'trackToken'};
+    my $isPositive   = $args{'isPositive'};
 
     # create the station.addFeedback method w/ appropriate params
-    my $method = WebService::Pandora::Method->new( name => 'station.addFeedback',
-                                                   partnerAuthToken => $self->{'partnerAuthToken'},
-                                                   userAuthToken => $self->{'userAuthToken'},
-                                                   partnerId => $self->{'partnerId'},
-                                                   userId => $self->{'userId'},
-                                                   syncTime => $self->{'syncTime'},
-                                                   host => $self->{'partner'}{'host'},
-                                                   ssl => 0,
-                                                   encrypt => 1,
-                                                   cryptor => $self->{'cryptor'},
-                                                   timeout => $self->{'timeout'},
-                                                   params => {'trackToken' => $trackToken,
-                                                              'isPositive' => $isPositive} );
+    my $method = WebService::Pandora::Method->new(
+        name => 'station.addFeedback',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        userAuthToken => $self->{'userAuthToken'},
+        partnerId => $self->{'partnerId'},
+        userId => $self->{'userId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 1,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => {
+          'stationToken' => $stationToken,
+          'trackToken' => $trackToken,
+          'isPositive' => $isPositive ? JSON::true() : JSON::false()
+        }
+      );
 
-    my $ret = $method->execute();
-
-    if ( !$ret ) {
-
-        $self->error( $method->error() );
-        return;
-    }
-
-    return $ret;
+    return $method->execute();
 }
 
 sub deleteFeedback {

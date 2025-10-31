@@ -4,6 +4,7 @@ use strict;
 use base qw(Slim::Player::Protocols::HTTPS);
 use Plugins::Pyrrha::Pandora qw(getPlaylist getAdMetadata registerAd);
 use Plugins::Pyrrha::Skips;
+use Plugins::Pyrrha::Utils qw(trackMetadataForStreamUrl);
 
 use Promise::ES6;
 
@@ -217,7 +218,7 @@ sub getNextTrack {
     $audio->{'audioUrl'} =~ s/^https/http/;
   }
   $song->streamUrl($audio->{'audioUrl'});
-  _trackMetadataForStreamUrl($song->streamUrl(), $track);
+  trackMetadataForStreamUrl($song->streamUrl(), $track);
   $log->info('next in playlist: ' . ($track->{'songIdentity'}));
 
   my $format = _formatForEncoding($audio->{'encoding'});
@@ -280,7 +281,7 @@ sub handleDirectError {
 sub _canSkip {
   my $client = shift;
 
-  my $meta = _trackMetadataForStreamUrl($client->playingSong()->streamUrl());
+  my $meta = trackMetadataForStreamUrl($client->playingSong()->streamUrl());
 
   return $meta->{'_canSkip'};
 }
@@ -308,7 +309,7 @@ sub trackGain {
 
   # return the gain for the "streaming" song, which is the next song that
   # will start playing:
-  my $meta = _trackMetadataForStreamUrl($client->streamingSong()->streamUrl());
+  my $meta = trackMetadataForStreamUrl($client->streamingSong()->streamUrl());
   my $gain = ($meta->{'trackGain'} || 0) + 0;
 
   return $gain;
@@ -322,7 +323,7 @@ sub getMetadataFor {
   my $song = $forceCurrent ? $client->streamingSong() : $client->playingSong();
   return {} unless $song;
 
-  my $meta = _trackMetadataForStreamUrl($song->streamUrl());
+  my $meta = trackMetadataForStreamUrl($song->streamUrl());
   if ($meta && %$meta) {
     return {
       artist   => $meta->{artistName},
@@ -345,7 +346,7 @@ sub getMetadataFor {
 
 sub formatOverride {
   my ($class, $song) = @_;
-  my $meta = _trackMetadataForStreamUrl($song->streamUrl());
+  my $meta = trackMetadataForStreamUrl($song->streamUrl());
   my $audio = $meta->{'_audio'};
   my $encoding = $audio->{'encoding'};
   return _formatForEncoding($encoding);
@@ -356,44 +357,6 @@ sub _formatForEncoding {
   my $encoding = shift;
   return 'mp4' if $encoding eq 'aacplus';
   return 'mp3';
-}
-
-
-my @_trackMetadataCache = ();
-sub _trackMetadataForStreamUrl {
-  my $keyUrl = shift;
-  my $newValue = shift;
-
-  # find an existing entry
-  if (! $newValue) {
-    foreach (@_trackMetadataCache) {
-      my ($u, $m, $e) = @$_;       # (url, metadata, expiration)
-      return $m if $u eq $keyUrl;
-    }
-    return undef;
-  }
-
-  # add a new entry
-  #
-  # entries are tuples: (key, data, expiration)
-  #
-  # we put new entries at the beginning of the list so our search
-  # above is brief, and we'll expire entries after 1 hour, which
-  # is about how long the audioUrls are good for
-  #
-  unshift @_trackMetadataCache, [$keyUrl, $newValue, time() + (60 * 60)];
-
-  # prune expired entries
-  my $now = time();
-  for (0 .. $#_trackMetadataCache) {
-    my ($u, $m, $e) = @{$_trackMetadataCache[$_]};
-    next if $e > $now;
-    # this and all following entries are expired
-    splice @_trackMetadataCache, $_;
-    last;
-  }
-
-  return;
 }
 
 

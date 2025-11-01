@@ -8,7 +8,7 @@ use base qw(Slim::Plugin::OPMLBased);
 use Digest::MD5 qw(md5_hex);
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Plugins::Pyrrha::Pandora qw(getStationList getStationArtUrl addFeedback);
+use Plugins::Pyrrha::Pandora qw(getStationList getStationArtUrl addFeedback getStationDetail);
 use Plugins::Pyrrha::Utils qw(trackMetadataForStreamUrl);
 
 sub getDisplayName () {
@@ -25,13 +25,50 @@ my $prefs = preferences( 'plugin.pyrrha' );
 my $defaultStationArtUrl;
 
 
+sub _makeStationDescription {
+  my $detail = shift;
+  my $music = $detail->{'music'};
+  my $feedback = $detail->{'feedback'};
+
+  my $d = [];
+
+  # seeding
+  push @$d, "Seeds:";
+  push @$d, "  Artists:";
+  foreach my $s ( @{$music->{'artists'}} ) {
+    push @$d, '    ' . $s->{'artistName'};
+  }
+  push @$d, "  Songs:";
+  foreach my $s ( @{$music->{'songs'}} ) {
+    push @$d, '    ' . $s->{'artistName'} . ', ' . $s->{'songName'};
+  }
+  push @$d, "  Genres:";
+  foreach my $s ( @{$music->{'genres'}} ) {
+    push @$d, '    ' . $s->{'genreName'};
+  }
+
+  # feedback
+  push @$d, "Feedback:";
+  push @$d, "  Thumbs Up:";
+  foreach my $t ( @{$feedback->{'thumbsUp'}} ) {
+    push @$d, '    ' . $t->{'artistName'} . ', ' . $t->{'songName'};
+  }
+  push @$d, "  Thumbs Down:";
+  foreach my $t ( @{$feedback->{'thumbsDown'}} ) {
+    push @$d, '    ' . $t->{'artistName'} . ', ' . $t->{'songName'};
+  }
+
+  return '<pre>' . join('<br>', @$d) . '</pre>';
+}
+
+
 sub _makeStationItem {
-  my ($query, $usernameDigest, $station) = @_;
+  my ($query, $usernameDigest, $station, $detail) = @_;
 
   my $stationId = $station->{'stationId'};
   my $playUrl = "pyrrha://$usernameDigest/$stationId.mp3";
   my $artUrl = getStationArtUrl($station);
-  return {
+  my $item = {
     'name'  => $station->{'name'},
     'type'  => 'audio',
     'url'   => $playUrl,
@@ -49,8 +86,21 @@ sub _makeStationItem {
           'menu' => $query,
         },
       },
+      'info' => {
+        'command' => [$query, 'items'],
+        'fixedParams' => {
+          '_stationId' => $stationId,
+          'isContextMenu' => 1,
+          'menu' => $query,
+          'item_id' => '00000000.0',
+        },
+      },
     },
   };
+  if ($detail) {
+    $item->{'description'} = _makeStationDescription($detail);
+  }
+  return $item;
 }
 
 sub handleFeed {
@@ -83,11 +133,24 @@ sub handleFeed {
   # handle request for a single station
   my $requestStationId = $args->{'params'}->{'_stationId'};
   if ($requestStationId) {
-    my $station = grep { $requestStationId eq $_->{'stationId'} } @$stations;
+    my ($station) = grep { $requestStationId eq $_->{'stationId'} } @$stations;
     if ($station) {
-      push @$items, _makeStationItem($query, $usernameDigest, $station);
+      getStationDetail($requestStationId)->then(sub {
+      my $detail = shift;
+      push @$items,
+        _makeStationItem($query, $usernameDigest, $station, $detail);
+      $callback->(\%opml);
+      })->catch(sub {
+      my $error = shift;
+      $log->error('unable to get station details: ' . $error);
+      push @$items,
+        _makeStationItem($query, $usernameDigest, $station);
+      $callback->(\%opml);
+      });
     }
-    $callback->(\%opml);
+    else {
+      $callback->(\%opml);
+    }
     return;
   }
 

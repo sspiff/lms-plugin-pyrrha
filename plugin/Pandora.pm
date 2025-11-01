@@ -3,7 +3,7 @@ package Plugins::Pyrrha::Pandora;
 use strict;
 
 use Exporter 'import';
-our @EXPORT_OK = qw(getWebService getStationList getPlaylist getStationArtUrl getAdMetadata registerAd);
+our @EXPORT_OK = qw(getWebService getStationList getPlaylist getStationArtUrl getAdMetadata registerAd addFeedback);
 
 use Slim::Utils::Prefs;
 use Slim::Networking::Async::HTTP;
@@ -318,6 +318,25 @@ sub registerAd {
   my $websvc = shift;
 
   return $websvc->registerAd(%args);
+
+  })->catch(sub {
+  my $error = shift;
+  $error = $error->{'message'} if ref $error eq 'HASH';
+  die $error;
+  });
+}
+
+
+sub addFeedback {
+  my (%args) = @_;
+  # stationToken
+  # trackToken
+  # isPositive
+
+  getWebService()->then(sub {
+  my $websvc = shift;
+
+  return $websvc->addFeedback(%args);
 
   })->catch(sub {
   my $error = shift;

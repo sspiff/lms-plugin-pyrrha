@@ -25,6 +25,34 @@ my $prefs = preferences( 'plugin.pyrrha' );
 my $defaultStationArtUrl;
 
 
+sub _makeStationItem {
+  my ($query, $usernameDigest, $station) = @_;
+
+  my $stationId = $station->{'stationId'};
+  my $playUrl = "pyrrha://$usernameDigest/$stationId.mp3";
+  my $artUrl = getStationArtUrl($station);
+  return {
+    'name'  => $station->{'name'},
+    'type'  => 'audio',
+    'url'   => $playUrl,
+    'image' => $artUrl ? $artUrl : $defaultStationArtUrl,
+    'itemActions' => {
+      # we define our own play action so that we can embed the station
+      # url into the request parameters.  this allows us to respond with
+      # the exact station the user selected even if the station list
+      # has changed.
+      'play' => {
+        'command' => [$query, 'playlist', 'play'],
+        'fixedParams' => {
+          '_stationId' => $stationId,
+          'isContextMenu' => 1,
+          'menu' => $query,
+        },
+      },
+    },
+  };
+}
+
 sub handleFeed {
   my ($client, $callback, $args) = @_;
   my $query = $args->{'params'}->{'menu'};
@@ -46,6 +74,24 @@ sub handleFeed {
   getStationList()->then(sub {
   my $stations = shift;
 
+  if (!(scalar @$stations)) {
+    # no stations
+    $callback->(\%opml);
+    return;
+  }
+
+  # handle request for a single station
+  my $requestStationId = $args->{'params'}->{'_stationId'};
+  if ($requestStationId) {
+    my $station = grep { $requestStationId eq $_->{'stationId'} } @$stations;
+    if ($station) {
+      push @$items, _makeStationItem($query, $usernameDigest, $station);
+    }
+    $callback->(\%opml);
+    return;
+  }
+
+  # return all stations
   my $stationSortKey = $prefs->get('stationSortOrder');
   my $stationSortMethod;
   if ($stationSortKey eq 'name') {
@@ -81,33 +127,8 @@ sub handleFeed {
     }
     @sorted_stations = sort $stationSortMethod @sorted_stations;
     unshift @sorted_stations, @quickmix;
-    my $queryUrl = $args->{'params'}->{'url'};
     foreach my $station ( @sorted_stations ) {
-      my $stationId = $station->{'stationId'};
-      my $playUrl = "pyrrha://$usernameDigest/$stationId.mp3";
-      my $artUrl = getStationArtUrl($station);
-      # if the feed request included a url, only return that item
-      if ($queryUrl && $playUrl ne $queryUrl) { next; }
-      push @$items, {
-        'name'  => $station->{'name'},
-        'type'  => 'audio',
-        'url'   => $playUrl,
-        'image' => $artUrl ? $artUrl : $defaultStationArtUrl,
-        'itemActions' => {
-          # we define our own play action so that we can embed the station
-          # url into the request parameters.  this allows us to respond with
-          # the exact station the user selected even if the station list
-          # has changed.
-          'play' => {
-            'command' => [$query, 'playlist', 'play'],
-            'fixedParams' => {
-              'url' => $playUrl,
-              'isContextMenu' => 1,
-              'menu' => $query,
-            },
-          },
-        },
-      };
+      push @$items, _makeStationItem($query, $usernameDigest, $station);
     }
   }
 

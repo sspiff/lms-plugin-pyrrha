@@ -335,6 +335,22 @@ sub getMetadataFor {
       buttons  => {
         rew => 0,
         fwd => _canSkip($client) ? 1 : 0,
+        # use 'repeat' for thumbs up
+        repeat => {
+          command => $meta->{'allowFeedback'} ? ['pyrrha', 'rate', 1]
+                                              : ['jivedummycommand'],
+          jiveStyle => $meta->{'allowFeedback'} ? 'thumbsUp'
+                                                : 'thumbsUpDisabled',
+          tooltip => $client->string('PLUGIN_PYRRHA_I_LIKE'),
+        },
+        # use 'shuffle' for thumbs down
+        shuffle => {
+          command => $meta->{'allowFeedback'} ? ['pyrrha', 'rate', 0]
+                                              : ['jivedummycommand'],
+          jiveStyle => $meta->{'allowFeedback'} ? 'thumbsDown'
+                                                : 'thumbsDownDisabled',
+          tooltip => $client->string('PLUGIN_PYRRHA_I_DONT_LIKE'),
+        },
       },
     };
   }

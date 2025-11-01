@@ -8,7 +8,8 @@ use base qw(Slim::Plugin::OPMLBased);
 use Digest::MD5 qw(md5_hex);
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Plugins::Pyrrha::Pandora qw(getStationList getStationArtUrl);
+use Plugins::Pyrrha::Pandora qw(getStationList getStationArtUrl addFeedback);
+use Plugins::Pyrrha::Utils qw(trackMetadataForStreamUrl);
 
 sub getDisplayName () {
   return 'PLUGIN_PYRRHA_MODULE_NAME';
@@ -136,6 +137,10 @@ sub initPlugin {
     stationSortOrder => 'lastPlayed',
   });
 
+  # register handlers for our custom commands
+  Slim::Control::Request::addDispatch(['pyrrha', 'rate', '_rating'],
+    [0, 1, 1, \&rateTrack]);
+
   if ( main::WEBUI ) {
     require Plugins::Pyrrha::Settings;
     Plugins::Pyrrha::Settings->new;
@@ -168,6 +173,46 @@ sub _pluginDataFor {
   }
 
   return $data;
+}
+
+
+sub rateTrack {
+  my $request = shift;
+  my $client = $request->client();
+  return unless defined $client;
+
+  my $song = $client->playingSong() || return;
+  my $meta = trackMetadataForStreamUrl($song->streamUrl()) || return;
+
+  my $rating = $request->getParam('_rating');
+
+  # we need: stationToken (stationId?) and trackToken to rate
+  addFeedback(
+    stationToken => $meta->{'stationId'},
+    trackToken => $meta->{'trackToken'},
+    isPositive => $rating
+  )->then(sub {
+
+  $log->info('feedback:'
+    . ' thumbs ' . $rating ? 'up' : 'down'
+    . ' \'' . $meta->{'songName'} . '\'');
+
+  # if thumbs down, then skip this track if we can
+  if (!$rating && $meta->{'_canSkip'}) {
+    $client->execute(['playlist', 'jump', '+1']);
+  }
+
+  $request->setStatusDone();
+
+  })->catch(sub {
+  my $error = shift;
+
+  $log->error('unable to add feedback: ' . $error);
+
+  # the original pandora plugin did this:
+  $request->setStatusBadParams();
+
+  });
 }
 
 

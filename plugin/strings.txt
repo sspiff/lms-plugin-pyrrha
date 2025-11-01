@@ -116,3 +116,36 @@ PLUGIN_PYRRHA_MENULOCATION_DESC
 	DE	Wählen Sie, ob das Plugin in "Eigene Anwendungen" oder "Radio" auftauchen soll. Bitte beachten Sie, dass Sie den Server neu starten müssen, um die Änderung zu aktivieren.
 	EN	Select if you want the plugin to appear in "My Apps" or "Radio". Note that you will need to restart the server after changing this setting.
 	FR	Sélectionnez si vous souhaitez que le plugin apparaisse dans le menu "Mes applications" ou "Radio". Notez que vous devrez redémarrer le serveur après avoir modifié ce paramètre.
+
+PLUGIN_PYRRHA_I_LIKE
+	CS	Tahle skladba se mi líbí
+	DA	Jeg kan lide dette nummer
+	DE	Dieser Titel gefällt mir
+	EN	I like this song
+	ES	Me gusta esta canción
+	FI	Pidän tästä kappaleesta
+	FR	J'aime ce morceau
+	HE	אוהב את השיר
+	IT	Mi piace questo brano
+	NL	Ik vind dit een leuk nummer
+	NO	Jeg liker denne sangen
+	PL	Lubię ten utwór
+	RU	Песня мне нравится
+	SV	Jag tycker om den här låten
+
+PLUGIN_PYRRHA_I_DONT_LIKE
+	CS	Tahle skladba se mi nelíbí
+	DA	Jeg kan ikke lide dette nummer
+	DE	Dieser Titel gefällt mir nicht
+	EN	I don't like this song
+	ES	No me gusta esta canción
+	FI	En pidä tästä kappaleesta
+	FR	Je n'aime pas ce morceau
+	HE	לא אוהב את השיר
+	IT	Non mi piace questo brano
+	NL	Ik vind dit geen leuk nummer
+	NO	Jeg liker ikke denne sangen
+	PL	Nie lubię tego utworu
+	RU	Песня мне не нравится
+	SV	Jag tycker inte om den här låten
+

@@ -214,45 +214,32 @@ sub getStationListChecksum {
 }
 
 sub getStation {
-
-    my ( $self, $cb, %args ) = @_;
+    my ( $self, %args ) = @_;
 
     my $stationToken = $args{'stationToken'};
     my $includeExtendedAttributes = $args{'includeExtendedAttributes'};
 
-    $includeExtendedAttributes = ( $includeExtendedAttributes ) ? JSON::true() : JSON::false();
-
-    # make sure they provided a stationToken argument
-    if ( !defined( $stationToken ) ) {
-
-        $self->error( 'A stationToken must be specified.' );
-        return;
-    }
-
-    # create the user.getStation method w/ appropriate params
-    my $method = WebService::Pandora::Method->new( name => 'station.getStation',
-                                                   partnerAuthToken => $self->{'partnerAuthToken'},
-                                                   userAuthToken => $self->{'userAuthToken'},
-                                                   partnerId => $self->{'partnerId'},
-                                                   userId => $self->{'userId'},
-                                                   syncTime => $self->{'syncTime'},
-                                                   host => $self->{'partner'}{'host'},
-                                                   ssl => 0,
-                                                   encrypt => 1,
-                                                   cryptor => $self->{'cryptor'},
-                                                   timeout => $self->{'timeout'},
-                                                   params => {'stationToken' => $stationToken,
-                                                              'includeExtendedAttributes' => $includeExtendedAttributes} );
-
-    $method->execute(
-        sub {
-            my (%ret) = @_;
-            if (defined $ret{'error'}) {
-                $self->error( $ret{'error'} );
-            }
-            $cb->(@_);
+    # create the station.addFeedback method w/ appropriate params
+    my $method = WebService::Pandora::Method->new(
+        name => 'station.getStation',
+        partnerAuthToken => $self->{'partnerAuthToken'},
+        userAuthToken => $self->{'userAuthToken'},
+        partnerId => $self->{'partnerId'},
+        userId => $self->{'userId'},
+        syncTime => $self->{'syncTime'},
+        host => $self->{'partner'}{'host'},
+        ssl => 1,
+        encrypt => 1,
+        cryptor => $self->{'cryptor'},
+        timeout => $self->{'timeout'},
+        params => {
+          'stationToken' => $stationToken,
+          'includeExtendedAttributes' =>
+            $includeExtendedAttributes ? JSON::true() : JSON::false(),
         }
-    );
+      );
+
+    return $method->execute();
 }
 
 sub search {

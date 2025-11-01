@@ -342,6 +342,7 @@ sub getMetadataFor {
           jiveStyle => $meta->{'allowFeedback'} ? 'thumbsUp'
                                                 : 'thumbsUpDisabled',
           tooltip => $client->string('PLUGIN_PYRRHA_I_LIKE'),
+          icon => 'html/images/btn_thumbs_up.gif',
         },
         # use 'shuffle' for thumbs down
         shuffle => {
@@ -350,6 +351,7 @@ sub getMetadataFor {
           jiveStyle => $meta->{'allowFeedback'} ? 'thumbsDown'
                                                 : 'thumbsDownDisabled',
           tooltip => $client->string('PLUGIN_PYRRHA_I_DONT_LIKE'),
+          icon => 'html/images/btn_thumbs_down.gif',
         },
       },
     };

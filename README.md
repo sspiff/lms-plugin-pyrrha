@@ -43,7 +43,7 @@ The Inkscape source for the icon can be found under ```misc/```.
 
 ## Acknowledgements
 
-Thank you to the [forum](https://forums.slimdevices.com/) users for their
+Thank you to the [forum](https://forums.lyrion.org) users for their
 encouragement and support.
 
 Pyrrha was heavily influenced by the standard plugins in the
